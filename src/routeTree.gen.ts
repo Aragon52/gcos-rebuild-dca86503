@@ -31,6 +31,9 @@ import { Route as AdminSecurityRouteImport } from './routes/admin.security'
 import { Route as AdminSystemRouteImport } from './routes/admin.system'
 import { Route as AdminSystemLogsRouteImport } from './routes/admin.system-logs'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiScrapeRouteImport } from './routes/api/scrape'
+import { Route as ApiSendNotificationRouteImport } from './routes/api/send-notification'
+import { Route as ApiSyncRouteImport } from './routes/api/sync'
 import { Route as CartLoginRouteImport } from './routes/cart.login'
 import { Route as CartRegisterRouteImport } from './routes/cart.register'
 import { Route as CategoriesSlugRouteImport } from './routes/categories.$slug'
@@ -72,6 +75,7 @@ import { Route as ApiAdminCreateResellerRouteImport } from './routes/api/admin/c
 import { Route as ApiAdminDeleteResellerRouteImport } from './routes/api/admin/delete-reseller'
 import { Route as ApiAdminDeleteStaffRouteImport } from './routes/api/admin/delete-staff'
 import { Route as ApiAdminResetResellerPasswordRouteImport } from './routes/api/admin/reset-reseller-password'
+import { Route as ApiAdminVerifyAllRouteImport } from './routes/api/admin/verify-all'
 import { Route as ResellerProfileCustomizeRouteImport } from './routes/reseller.profile.customize'
 import { Route as ApipublicResellerRequestResetRouteImport } from './routes/api/(public)/reseller/request-reset'
 
@@ -183,6 +187,21 @@ const AdminSystemLogsRoute = AdminSystemLogsRouteImport.update({
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiScrapeRoute = ApiScrapeRouteImport.update({
+  id: '/api/scrape',
+  path: '/api/scrape',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSendNotificationRoute = ApiSendNotificationRouteImport.update({
+  id: '/api/send-notification',
+  path: '/api/send-notification',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSyncRoute = ApiSyncRouteImport.update({
+  id: '/api/sync',
+  path: '/api/sync',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartLoginRoute = CartLoginRouteImport.update({
@@ -395,6 +414,11 @@ const ApiAdminResetResellerPasswordRoute =
     path: '/api/admin/reset-reseller-password',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminVerifyAllRoute = ApiAdminVerifyAllRouteImport.update({
+  id: '/api/admin/verify-all',
+  path: '/api/admin/verify-all',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResellerProfileCustomizeRoute =
   ResellerProfileCustomizeRouteImport.update({
     id: '/customize',
@@ -430,6 +454,9 @@ export interface FileRoutesByFullPath {
   '/admin/system': typeof AdminSystemRoute
   '/admin/system-logs': typeof AdminSystemLogsRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/scrape': typeof ApiScrapeRoute
+  '/api/send-notification': typeof ApiSendNotificationRoute
+  '/api/sync': typeof ApiSyncRoute
   '/cart/login': typeof CartLoginRoute
   '/cart/register': typeof CartRegisterRoute
   '/categories/$slug': typeof CategoriesSlugRoute
@@ -472,6 +499,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/delete-reseller': typeof ApiAdminDeleteResellerRoute
   '/api/admin/delete-staff': typeof ApiAdminDeleteStaffRoute
   '/api/admin/reset-reseller-password': typeof ApiAdminResetResellerPasswordRoute
+  '/api/admin/verify-all': typeof ApiAdminVerifyAllRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
   '/api/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
@@ -497,6 +525,9 @@ export interface FileRoutesByTo {
   '/admin/system': typeof AdminSystemRoute
   '/admin/system-logs': typeof AdminSystemLogsRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/scrape': typeof ApiScrapeRoute
+  '/api/send-notification': typeof ApiSendNotificationRoute
+  '/api/sync': typeof ApiSyncRoute
   '/cart/login': typeof CartLoginRoute
   '/cart/register': typeof CartRegisterRoute
   '/categories/$slug': typeof CategoriesSlugRoute
@@ -539,6 +570,7 @@ export interface FileRoutesByTo {
   '/api/admin/delete-reseller': typeof ApiAdminDeleteResellerRoute
   '/api/admin/delete-staff': typeof ApiAdminDeleteStaffRoute
   '/api/admin/reset-reseller-password': typeof ApiAdminResetResellerPasswordRoute
+  '/api/admin/verify-all': typeof ApiAdminVerifyAllRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
   '/api/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
@@ -565,6 +597,9 @@ export interface FileRoutesById {
   '/admin/system': typeof AdminSystemRoute
   '/admin/system-logs': typeof AdminSystemLogsRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/scrape': typeof ApiScrapeRoute
+  '/api/send-notification': typeof ApiSendNotificationRoute
+  '/api/sync': typeof ApiSyncRoute
   '/cart/login': typeof CartLoginRoute
   '/cart/register': typeof CartRegisterRoute
   '/categories/$slug': typeof CategoriesSlugRoute
@@ -607,6 +642,7 @@ export interface FileRoutesById {
   '/api/admin/delete-reseller': typeof ApiAdminDeleteResellerRoute
   '/api/admin/delete-staff': typeof ApiAdminDeleteStaffRoute
   '/api/admin/reset-reseller-password': typeof ApiAdminResetResellerPasswordRoute
+  '/api/admin/verify-all': typeof ApiAdminVerifyAllRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
   '/api/(public)/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
@@ -634,6 +670,9 @@ export interface FileRouteTypes {
     | '/admin/system'
     | '/admin/system-logs'
     | '/api/health'
+    | '/api/scrape'
+    | '/api/send-notification'
+    | '/api/sync'
     | '/cart/login'
     | '/cart/register'
     | '/categories/$slug'
@@ -676,6 +715,7 @@ export interface FileRouteTypes {
     | '/api/admin/delete-reseller'
     | '/api/admin/delete-staff'
     | '/api/admin/reset-reseller-password'
+    | '/api/admin/verify-all'
     | '/reseller/profile/customize'
     | '/api/reseller/request-reset'
   fileRoutesByTo: FileRoutesByTo
@@ -701,6 +741,9 @@ export interface FileRouteTypes {
     | '/admin/system'
     | '/admin/system-logs'
     | '/api/health'
+    | '/api/scrape'
+    | '/api/send-notification'
+    | '/api/sync'
     | '/cart/login'
     | '/cart/register'
     | '/categories/$slug'
@@ -743,6 +786,7 @@ export interface FileRouteTypes {
     | '/api/admin/delete-reseller'
     | '/api/admin/delete-staff'
     | '/api/admin/reset-reseller-password'
+    | '/api/admin/verify-all'
     | '/reseller/profile/customize'
     | '/api/reseller/request-reset'
   id:
@@ -768,6 +812,9 @@ export interface FileRouteTypes {
     | '/admin/system'
     | '/admin/system-logs'
     | '/api/health'
+    | '/api/scrape'
+    | '/api/send-notification'
+    | '/api/sync'
     | '/cart/login'
     | '/cart/register'
     | '/categories/$slug'
@@ -810,6 +857,7 @@ export interface FileRouteTypes {
     | '/api/admin/delete-reseller'
     | '/api/admin/delete-staff'
     | '/api/admin/reset-reseller-password'
+    | '/api/admin/verify-all'
     | '/reseller/profile/customize'
     | '/api/(public)/reseller/request-reset'
   fileRoutesById: FileRoutesById
@@ -836,6 +884,9 @@ export interface RootRouteChildren {
   AdminSystemRoute: typeof AdminSystemRoute
   AdminSystemLogsRoute: typeof AdminSystemLogsRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiScrapeRoute: typeof ApiScrapeRoute
+  ApiSendNotificationRoute: typeof ApiSendNotificationRoute
+  ApiSyncRoute: typeof ApiSyncRoute
   ProductsIdRoute: typeof ProductsIdRoute
   ResellerSplatRoute: typeof ResellerSplatRoute
   ResellerAdBoostRoute: typeof ResellerAdBoostRoute
@@ -875,6 +926,7 @@ export interface RootRouteChildren {
   ApiAdminDeleteResellerRoute: typeof ApiAdminDeleteResellerRoute
   ApiAdminDeleteStaffRoute: typeof ApiAdminDeleteStaffRoute
   ApiAdminResetResellerPasswordRoute: typeof ApiAdminResetResellerPasswordRoute
+  ApiAdminVerifyAllRoute: typeof ApiAdminVerifyAllRoute
   ApipublicResellerRequestResetRoute: typeof ApipublicResellerRequestResetRoute
 }
 
@@ -1032,6 +1084,27 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/scrape': {
+      id: '/api/scrape'
+      path: '/api/scrape'
+      fullPath: '/api/scrape'
+      preLoaderRoute: typeof ApiScrapeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/send-notification': {
+      id: '/api/send-notification'
+      path: '/api/send-notification'
+      fullPath: '/api/send-notification'
+      preLoaderRoute: typeof ApiSendNotificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sync': {
+      id: '/api/sync'
+      path: '/api/sync'
+      fullPath: '/api/sync'
+      preLoaderRoute: typeof ApiSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart/login': {
@@ -1321,6 +1394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminResetResellerPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/verify-all': {
+      id: '/api/admin/verify-all'
+      path: '/api/admin/verify-all'
+      fullPath: '/api/admin/verify-all'
+      preLoaderRoute: typeof ApiAdminVerifyAllRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reseller/profile/customize': {
       id: '/reseller/profile/customize'
       path: '/customize'
@@ -1396,6 +1476,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSystemRoute: AdminSystemRoute,
   AdminSystemLogsRoute: AdminSystemLogsRoute,
   ApiHealthRoute: ApiHealthRoute,
+  ApiScrapeRoute: ApiScrapeRoute,
+  ApiSendNotificationRoute: ApiSendNotificationRoute,
+  ApiSyncRoute: ApiSyncRoute,
   ProductsIdRoute: ProductsIdRoute,
   ResellerSplatRoute: ResellerSplatRoute,
   ResellerAdBoostRoute: ResellerAdBoostRoute,
@@ -1435,6 +1518,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminDeleteResellerRoute: ApiAdminDeleteResellerRoute,
   ApiAdminDeleteStaffRoute: ApiAdminDeleteStaffRoute,
   ApiAdminResetResellerPasswordRoute: ApiAdminResetResellerPasswordRoute,
+  ApiAdminVerifyAllRoute: ApiAdminVerifyAllRoute,
   ApipublicResellerRequestResetRoute: ApipublicResellerRequestResetRoute,
 }
 export const routeTree = rootRouteImport
