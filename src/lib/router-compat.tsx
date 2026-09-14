@@ -41,11 +41,40 @@ export function useNavigate() {
 }
 
 export function useParams<T extends Record<string, string> = Record<string, string>>(): T {
-  return useTanParams({ strict: false }) as T;
+  return (useTanParams as (opts: { strict: boolean }) => unknown)({ strict: false }) as T;
 }
 
 export function useLocation() {
   return useTanLocation();
+}
+
+/** Minimal URLSearchParams-based equivalent of react-router's useSearchParams. */
+export function useSearchParams(): [
+  URLSearchParams,
+  (next: URLSearchParams | Record<string, string> | ((prev: URLSearchParams) => URLSearchParams), opts?: { replace?: boolean }) => void,
+] {
+  const search = useRouterState({ select: (s) => s.location.search }) as Record<string, unknown>;
+  const navigate = useTanNavigate();
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(search ?? {})) {
+    if (v != null) params.set(k, String(v));
+  }
+  const setParams = React.useCallback(
+    (
+      next: URLSearchParams | Record<string, string> | ((prev: URLSearchParams) => URLSearchParams),
+      opts?: { replace?: boolean },
+    ) => {
+      const resolved =
+        typeof next === "function" ? next(new URLSearchParams(params)) : next;
+      const obj: Record<string, string> =
+        resolved instanceof URLSearchParams
+          ? Object.fromEntries(resolved.entries())
+          : resolved;
+      void navigate({ to: "." as never, search: obj as never, replace: opts?.replace });
+    },
+    [navigate, params],
+  );
+  return [params, setParams];
 }
 
 export function Navigate({
@@ -75,7 +104,7 @@ export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(function Link
   return <TanLink ref={ref} to={to as never} replace={replace} {...rest} />;
 });
 
-interface NavLinkProps extends LinkProps {
+export interface NavLinkProps extends Omit<LinkProps, "className" | "style" | "children"> {
   end?: boolean;
   activeClassName?: string;
   pendingClassName?: string;
