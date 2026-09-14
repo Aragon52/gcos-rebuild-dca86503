@@ -604,12 +604,12 @@ export default function SQCVirtualOrdersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(useRealUsers ? realUsers : profiles)
-                  .filter(p => 
+                {(useRealUsers ? realUsers : profiles as any[])
+                  .filter((p: any) => 
                     (p.name || `${p.first_name || ""} ${p.last_name || ""}`).toLowerCase().includes(searchQuery.toLowerCase()) ||
                     (p.email || "").toLowerCase().includes(searchQuery.toLowerCase())
                   )
-                  .map((p, i) => (
+                  .map((p: any, i) => (
                     <TableRow key={p.id} className={cn(selectedProfile?.id === p.id && "bg-primary/5")}>
                       <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
                       <TableCell className="font-medium text-sm">
