@@ -24,7 +24,7 @@ interface ResellerWithdrawalSheetProps {
 interface WithdrawalRecord {
   id: string;
   amount: number;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "completed" | "failed";
   date: string;
 }
 
@@ -65,7 +65,7 @@ export default function ResellerWithdrawalSheet({ open, onOpenChange }: Reseller
         createdAt: row.createdAt
       }));
       
-      setHistory(records);
+      setHistory(records as WithdrawalRecord[]);
     };
 
     fetchHistory();

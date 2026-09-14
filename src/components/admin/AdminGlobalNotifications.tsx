@@ -50,8 +50,8 @@ export function AdminGlobalNotifications() {
       };
     };
 
-    const formatChatNotification = (data: Record<string, string | null>, prefix: string) => {
-      let content = data.content || data.message || '';
+    const formatChatNotification = (data: Record<string, unknown>, prefix: string) => {
+      let content = String(data.content || data.message || '');
       
       if (content.includes('[IMG_ATTACH:')) {
         content = content.replace(/\s*\[IMG_ATTACH:[^\]]+\]\s*/g, ' ').trim();

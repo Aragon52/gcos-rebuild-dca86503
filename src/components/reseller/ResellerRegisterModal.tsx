@@ -29,6 +29,7 @@ export default function ResellerRegisterModal({ open, onOpenChange, initialRefer
   const [referralCode, setReferralCode] = useState(initialReferralCode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showVerification, setShowVerification] = useState(false);
 
   useEffect(() => {
     if (initialReferralCode) {

@@ -105,7 +105,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         throw userError;
       }
 
-      let currentRole = userData?.role;
+      let currentRole = userData?.role as string | undefined;
       let currentData = userData;
 
       // 1. Force owner role for specific top-level admin
@@ -210,7 +210,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       };
 
       // Ensure accountId is present in session
-      let accountId = currentData.account_id || null;
+      let accountId = (currentData as Record<string, unknown> | null)?.account_id as string | null || null;
       
       if (!accountId) {
         if (currentRole === 'owner') {

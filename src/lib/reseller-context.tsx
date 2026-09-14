@@ -128,7 +128,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         profileChannel = supabase
           .channel(`public:reseller_profiles:${user.id}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: 'reseller_profiles', filter: `id=eq.${user.id}` }, (payload) => {
-            const profileData = payload.new as Record<string, unknown>;
+            const profileData = payload.new as any;
             if (profileData && mounted) {
               setReseller(prev => {
                 if (!prev) return null;
@@ -179,7 +179,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         userChannel = supabase
           .channel(`public:users:${user.id}`)
           .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, (payload) => {
-            const userData = payload.new as Record<string, unknown>;
+            const userData = payload.new as any;
             if (userData && mounted) {
               setReseller(prev => {
                 if (!prev) return null;

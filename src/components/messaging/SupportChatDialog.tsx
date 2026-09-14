@@ -104,7 +104,7 @@ export default function SupportChatDialog({ open, onClose, userName, resellerId 
   // Set offline on close
   useEffect(() => {
     if (!open && sessionId) {
-      supabase.from('support_sessions').update({ is_online: false }).eq('id', sessionId).catch(console.error);
+      void supabase.from('support_sessions').update({ is_online: false }).eq('id', sessionId).then(({ error }) => { if (error) console.error(error); });
     }
   }, [open, sessionId]);
 

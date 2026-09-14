@@ -48,7 +48,8 @@ export function useOrders(pageSize: number = 20) {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const mapDataToOrder = (orderData: Record<string, unknown>): Order => {
+  const mapDataToOrder = (orderDataRaw: Record<string, unknown>): Order => {
+    const orderData = orderDataRaw as Record<string, any>;
     const customerName = orderData.profileName || orderData.customerName || "Unknown";
     const customerEmail = orderData.customerEmail || "";
     
