@@ -129,6 +129,7 @@ i18n
 
 // Handle RTL direction
 i18n.on('languageChanged', (lng) => {
+  if (typeof document === 'undefined') return;
   document.dir = isRTL(lng) ? 'rtl' : 'ltr';
   document.documentElement.lang = lng;
 });
