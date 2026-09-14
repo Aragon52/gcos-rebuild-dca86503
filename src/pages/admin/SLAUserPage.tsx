@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useDbSlaStaff, dbStaffToLegacy, type LegacySlaStaff } from "@/hooks/use-db-sla";
 import { useAdminAccess } from "@/hooks/use-admin-access";
-import { resellerPath } from "@/lib/subdomain";
+import { resellerPath, resellerPrefix } from "@/lib/subdomain";
 import { Search, Mail, Phone, MoreVertical, X, Users, Copy, Link, Check, Trash2, ShieldAlert, ShieldCheck } from "lucide-react";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { toast } from "sonner";

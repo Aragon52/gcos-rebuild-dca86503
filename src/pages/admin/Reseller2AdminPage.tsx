@@ -4,6 +4,7 @@ import { Search, Pin, PinOff, Volume2, VolumeX, Send, MessageSquare, Circle, Use
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useProducts } from "@/lib/products-context-hooks";
+import type { Reseller } from "@/lib/types";
 import { useUnifiedResellers } from "@/lib/unified-hooks";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";

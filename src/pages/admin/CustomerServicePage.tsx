@@ -20,7 +20,7 @@ interface Message {
   session_id: string;
   sender: string;
   message: string;
-  attachment_product_id: string | null;
+  attachment_product_id?: string | null;
   is_read: boolean;
   created_at: string;
 }
@@ -29,6 +29,9 @@ export default function CustomerServicePage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [loadingMoreMessages, setLoadingMoreMessages] = useState(false);
+  const loadMoreMessages = () => {};
   const [input, setInput] = useState("");
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [uploading, setUploading] = useState(false);

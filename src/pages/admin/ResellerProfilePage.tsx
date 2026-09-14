@@ -182,7 +182,7 @@ export default function ResellerProfilePage() {
                           size="sm" 
                           className="h-8 w-8 p-0"
                           disabled={!reseller.hasRequestedPasswordReset}
-                          onClick={() => handlePasswordReset(reseller)}
+                          onClick={() => handlePasswordReset(reseller as unknown as Reseller)}
                           title={reseller.hasRequestedPasswordReset ? t("admin.resetPassword") : t("admin.noResetRequest")}
                         >
                           <Key className="h-4 w-4" />
