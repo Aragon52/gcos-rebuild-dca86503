@@ -13,7 +13,7 @@ const bodySchema = z.object({
   uid: z.string().optional().nullable(),
 });
 
-export const Route = createFileRoute("/api/register-reseller")({
+export const Route = createFileRoute("/api/(public)/register-reseller")({
   server: {
     handlers: {
       POST: async ({ request }) => {

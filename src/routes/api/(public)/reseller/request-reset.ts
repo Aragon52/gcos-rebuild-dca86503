@@ -6,7 +6,7 @@ const bodySchema = z.object({
   email: z.string().email(),
 });
 
-export const Route = createFileRoute("/api/reseller/request-reset")({
+export const Route = createFileRoute("/api/(public)/reseller/request-reset")({
   server: {
     handlers: {
       POST: async ({ request }) => {

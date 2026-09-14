@@ -30,6 +30,7 @@ import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminSecurityRouteImport } from './routes/admin.security'
 import { Route as AdminSystemRouteImport } from './routes/admin.system'
 import { Route as AdminSystemLogsRouteImport } from './routes/admin.system-logs'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as CartLoginRouteImport } from './routes/cart.login'
 import { Route as CartRegisterRouteImport } from './routes/cart.register'
 import { Route as CategoriesSlugRouteImport } from './routes/categories.$slug'
@@ -65,7 +66,9 @@ import { Route as AdminSlaReseller2AdminRouteImport } from './routes/admin.sla.r
 import { Route as AdminSlaSiteAdvertisingRouteImport } from './routes/admin.sla.site-advertising'
 import { Route as AdminSlaSqcOrdersRouteImport } from './routes/admin.sla.sqc-orders'
 import { Route as AdminSlaStaffRouteImport } from './routes/admin.sla.staff'
+import { Route as ApipublicRegisterResellerRouteImport } from './routes/api/(public)/register-reseller'
 import { Route as ResellerProfileCustomizeRouteImport } from './routes/reseller.profile.customize'
+import { Route as ApipublicResellerRequestResetRouteImport } from './routes/api/(public)/reseller/request-reset'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -170,6 +173,11 @@ const AdminSystemRoute = AdminSystemRouteImport.update({
 const AdminSystemLogsRoute = AdminSystemLogsRouteImport.update({
   id: '/admin/system-logs',
   path: '/admin/system-logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartLoginRoute = CartLoginRouteImport.update({
@@ -350,11 +358,23 @@ const AdminSlaStaffRoute = AdminSlaStaffRouteImport.update({
   path: '/admin/sla/staff',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApipublicRegisterResellerRoute =
+  ApipublicRegisterResellerRouteImport.update({
+    id: '/api/(public)/register-reseller',
+    path: '/api/register-reseller',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ResellerProfileCustomizeRoute =
   ResellerProfileCustomizeRouteImport.update({
     id: '/customize',
     path: '/customize',
     getParentRoute: () => ResellerProfileRoute,
+  } as any)
+const ApipublicResellerRequestResetRoute =
+  ApipublicResellerRequestResetRouteImport.update({
+    id: '/api/(public)/reseller/request-reset',
+    path: '/api/reseller/request-reset',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -378,6 +398,7 @@ export interface FileRoutesByFullPath {
   '/admin/security': typeof AdminSecurityRoute
   '/admin/system': typeof AdminSystemRoute
   '/admin/system-logs': typeof AdminSystemLogsRoute
+  '/api/health': typeof ApiHealthRoute
   '/cart/login': typeof CartLoginRoute
   '/cart/register': typeof CartRegisterRoute
   '/categories/$slug': typeof CategoriesSlugRoute
@@ -414,7 +435,9 @@ export interface FileRoutesByFullPath {
   '/admin/sla/site-advertising': typeof AdminSlaSiteAdvertisingRoute
   '/admin/sla/sqc-orders': typeof AdminSlaSqcOrdersRoute
   '/admin/sla/staff': typeof AdminSlaStaffRoute
+  '/api/register-reseller': typeof ApipublicRegisterResellerRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
+  '/api/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -437,6 +460,7 @@ export interface FileRoutesByTo {
   '/admin/security': typeof AdminSecurityRoute
   '/admin/system': typeof AdminSystemRoute
   '/admin/system-logs': typeof AdminSystemLogsRoute
+  '/api/health': typeof ApiHealthRoute
   '/cart/login': typeof CartLoginRoute
   '/cart/register': typeof CartRegisterRoute
   '/categories/$slug': typeof CategoriesSlugRoute
@@ -473,7 +497,9 @@ export interface FileRoutesByTo {
   '/admin/sla/site-advertising': typeof AdminSlaSiteAdvertisingRoute
   '/admin/sla/sqc-orders': typeof AdminSlaSqcOrdersRoute
   '/admin/sla/staff': typeof AdminSlaStaffRoute
+  '/api/register-reseller': typeof ApipublicRegisterResellerRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
+  '/api/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -497,6 +523,7 @@ export interface FileRoutesById {
   '/admin/security': typeof AdminSecurityRoute
   '/admin/system': typeof AdminSystemRoute
   '/admin/system-logs': typeof AdminSystemLogsRoute
+  '/api/health': typeof ApiHealthRoute
   '/cart/login': typeof CartLoginRoute
   '/cart/register': typeof CartRegisterRoute
   '/categories/$slug': typeof CategoriesSlugRoute
@@ -533,7 +560,9 @@ export interface FileRoutesById {
   '/admin/sla/site-advertising': typeof AdminSlaSiteAdvertisingRoute
   '/admin/sla/sqc-orders': typeof AdminSlaSqcOrdersRoute
   '/admin/sla/staff': typeof AdminSlaStaffRoute
+  '/api/(public)/register-reseller': typeof ApipublicRegisterResellerRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
+  '/api/(public)/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -558,6 +587,7 @@ export interface FileRouteTypes {
     | '/admin/security'
     | '/admin/system'
     | '/admin/system-logs'
+    | '/api/health'
     | '/cart/login'
     | '/cart/register'
     | '/categories/$slug'
@@ -594,7 +624,9 @@ export interface FileRouteTypes {
     | '/admin/sla/site-advertising'
     | '/admin/sla/sqc-orders'
     | '/admin/sla/staff'
+    | '/api/register-reseller'
     | '/reseller/profile/customize'
+    | '/api/reseller/request-reset'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -617,6 +649,7 @@ export interface FileRouteTypes {
     | '/admin/security'
     | '/admin/system'
     | '/admin/system-logs'
+    | '/api/health'
     | '/cart/login'
     | '/cart/register'
     | '/categories/$slug'
@@ -653,7 +686,9 @@ export interface FileRouteTypes {
     | '/admin/sla/site-advertising'
     | '/admin/sla/sqc-orders'
     | '/admin/sla/staff'
+    | '/api/register-reseller'
     | '/reseller/profile/customize'
+    | '/api/reseller/request-reset'
   id:
     | '__root__'
     | '/'
@@ -676,6 +711,7 @@ export interface FileRouteTypes {
     | '/admin/security'
     | '/admin/system'
     | '/admin/system-logs'
+    | '/api/health'
     | '/cart/login'
     | '/cart/register'
     | '/categories/$slug'
@@ -712,7 +748,9 @@ export interface FileRouteTypes {
     | '/admin/sla/site-advertising'
     | '/admin/sla/sqc-orders'
     | '/admin/sla/staff'
+    | '/api/(public)/register-reseller'
     | '/reseller/profile/customize'
+    | '/api/(public)/reseller/request-reset'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -736,6 +774,7 @@ export interface RootRouteChildren {
   AdminSecurityRoute: typeof AdminSecurityRoute
   AdminSystemRoute: typeof AdminSystemRoute
   AdminSystemLogsRoute: typeof AdminSystemLogsRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ProductsIdRoute: typeof ProductsIdRoute
   ResellerSplatRoute: typeof ResellerSplatRoute
   ResellerAdBoostRoute: typeof ResellerAdBoostRoute
@@ -769,6 +808,8 @@ export interface RootRouteChildren {
   AdminSlaSiteAdvertisingRoute: typeof AdminSlaSiteAdvertisingRoute
   AdminSlaSqcOrdersRoute: typeof AdminSlaSqcOrdersRoute
   AdminSlaStaffRoute: typeof AdminSlaStaffRoute
+  ApipublicRegisterResellerRoute: typeof ApipublicRegisterResellerRoute
+  ApipublicResellerRequestResetRoute: typeof ApipublicResellerRequestResetRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -918,6 +959,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/system-logs'
       fullPath: '/admin/system-logs'
       preLoaderRoute: typeof AdminSystemLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart/login': {
@@ -1165,12 +1213,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSlaStaffRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/(public)/register-reseller': {
+      id: '/api/(public)/register-reseller'
+      path: '/api/register-reseller'
+      fullPath: '/api/register-reseller'
+      preLoaderRoute: typeof ApipublicRegisterResellerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reseller/profile/customize': {
       id: '/reseller/profile/customize'
       path: '/customize'
       fullPath: '/reseller/profile/customize'
       preLoaderRoute: typeof ResellerProfileCustomizeRouteImport
       parentRoute: typeof ResellerProfileRoute
+    }
+    '/api/(public)/reseller/request-reset': {
+      id: '/api/(public)/reseller/request-reset'
+      path: '/api/reseller/request-reset'
+      fullPath: '/api/reseller/request-reset'
+      preLoaderRoute: typeof ApipublicResellerRequestResetRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -1232,6 +1294,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSecurityRoute: AdminSecurityRoute,
   AdminSystemRoute: AdminSystemRoute,
   AdminSystemLogsRoute: AdminSystemLogsRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ProductsIdRoute: ProductsIdRoute,
   ResellerSplatRoute: ResellerSplatRoute,
   ResellerAdBoostRoute: ResellerAdBoostRoute,
@@ -1265,6 +1328,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSlaSiteAdvertisingRoute: AdminSlaSiteAdvertisingRoute,
   AdminSlaSqcOrdersRoute: AdminSlaSqcOrdersRoute,
   AdminSlaStaffRoute: AdminSlaStaffRoute,
+  ApipublicRegisterResellerRoute: ApipublicRegisterResellerRoute,
+  ApipublicResellerRequestResetRoute: ApipublicResellerRequestResetRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
