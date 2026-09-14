@@ -76,7 +76,7 @@ export default function VirtualOrderServicesPage() {
       }, (payload) => {
         const data = payload.new as Record<string, unknown>;
         if (data && data.reseller_id) {
-          setOnlineStatus(prev => ({ ...prev, [data.reseller_id]: data.is_online || false }));
+          setOnlineStatus(prev => ({ ...prev, [data.reseller_id as string]: (data.is_online as boolean) || false }));
         }
       })
       .subscribe();

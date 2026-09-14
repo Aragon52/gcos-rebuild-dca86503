@@ -476,9 +476,9 @@ export default function VirtualCustomerServicesPage() {
                     const displayText = product ? productText : imgText;
 
                     return (
-                      <div key={msg.id} className={`flex ${msg.sender === "admin" || msg.sender === "customer" ? "flex-row-reverse" : "flex-row"} items-center gap-2 group`}>
+                      <div key={msg.id} className={`flex ${(msg.sender as string) === "admin" || msg.sender === "customer" ? "flex-row-reverse" : "flex-row"} items-center gap-2 group`}>
                         <div className={`max-w-[70%] p-3 rounded-2xl shadow-sm relative ${
-                          msg.sender === "admin" || msg.sender === "customer"
+                          (msg.sender as string) === "admin" || msg.sender === "customer"
                             ? "bg-primary text-primary-foreground rounded-tr-none" 
                             : "bg-card text-card-foreground rounded-tl-none border"
                         }`}>

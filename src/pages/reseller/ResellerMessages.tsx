@@ -74,7 +74,7 @@ function SupportChatPanel() {
   const initSession = useCallback(async () => {
     if (!reseller?.id) return;
     const resellerId = reseller.id;
-    const resellerName = reseller.shopName || reseller.shop_name || `${reseller.firstName} ${reseller.lastName}`;
+    const resellerName = reseller.shopName || (reseller as any).shop_name || `${reseller.firstName} ${reseller.lastName}`;
 
     try {
       const { data: existingSessions, error: fetchError } = await supabase

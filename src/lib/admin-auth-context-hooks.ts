@@ -63,6 +63,7 @@ export interface AdminAuthContextType {
   signIn: (email: string, password: string) => Promise<{success: boolean, message?: string}>;
   signOut: () => Promise<void>;
   loading: boolean;
+  user?: { id?: string; email?: string; role?: string } | null;
 }
 
 export const AdminAuthContext = createContext<AdminAuthContextType | null>(null);

@@ -31,7 +31,7 @@ export async function fetchExternalProducts(url?: string): Promise<Product[]> {
       name: item.title || item.name || "Unknown Product",
       price: Number(item.price) || 0,
       image: item.thumbnail || (item.images && item.images[0]) || item.image || "",
-      category: item.category?.name || item.category || "Uncategorized",
+      category: (typeof item.category === "object" && item.category ? item.category.name : item.category) || "Uncategorized",
       sku: item.sku || `SKU-${item.id}`,
       stock: item.stock ?? 10, // Default to 10 if stock is not provided
       description: item.description || "",

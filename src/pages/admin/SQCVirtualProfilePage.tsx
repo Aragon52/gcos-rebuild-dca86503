@@ -343,7 +343,7 @@ export default function SQCVirtualProfilePage() {
       
       if (error) throw error;
       
-      const enriched: ChatSession[] = (data || []).map((s: Record<string, unknown>) => {
+      const enriched = (data || []).map((s: Record<string, unknown>) => {
         return {
           ...s,
           is_pinned: s.is_pinned ?? false,
@@ -351,7 +351,7 @@ export default function SQCVirtualProfilePage() {
           unreadCount: s.unread_count || 0,
         };
       });
-      setSessions(enriched);
+      setSessions(enriched as unknown as ChatSession[]);
     } catch (error) {
       console.error("Error fetching sessions:", error);
     }
@@ -545,7 +545,7 @@ export default function SQCVirtualProfilePage() {
 
   useEffect(() => {
     if (activeSessionId) {
-      supabase.from("reseller_chat_sessions").update({ unread_count: 0 }).eq("id", activeSessionId).catch(console.error);
+      (supabase.from("reseller_chat_sessions").update({ unread_count: 0 }).eq("id", activeSessionId) as any).catch(console.error);
     }
   }, [activeSessionId]);
 
