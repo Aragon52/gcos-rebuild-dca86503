@@ -5,6 +5,8 @@ export interface CustomerUser {
   name: string;
   email: string;
   customerId: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 export interface CustomerAuthContextType {

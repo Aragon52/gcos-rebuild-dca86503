@@ -60,10 +60,11 @@ export interface Reseller {
     accountNumber: string;
   };
   usdtAddress?: string;
+  phone?: string;
   lastActive?: string;
 }
 
-export type OrderStatus = "Pending" | "Ongoing" | "Completed" | "Cancelled";
+export type OrderStatus = "Pending" | "Ongoing" | "Completed" | "Cancelled" | "Shipped";
 
 export interface OrderItem {
   productId: string;
