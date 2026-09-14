@@ -110,7 +110,7 @@ export default function ARSTrackOrdersPage() {
   const [hasMore, setHasMore] = useState(true);
   const [fetchLimit, setFetchLimit] = useState(PAGE_SIZE_FETCH);
 
-  const mapOrderData = (data: Record<string, unknown>) => {
+  const mapOrderData = (data: any) => {
     let statusStr = String(data.status || "Pending");
     statusStr = statusStr.charAt(0).toUpperCase() + statusStr.slice(1).toLowerCase();
     
@@ -150,7 +150,7 @@ export default function ARSTrackOrdersPage() {
     if (error) {
       console.error("Error fetching orders:", error);
     } else {
-      setOrders((data || []).map(mapOrderData));
+      setOrders((data || []).map(mapOrderData) as unknown as OrderRecord[]);
       setHasMore((data || []).length >= fetchLimit);
     }
     setLoading(false);
