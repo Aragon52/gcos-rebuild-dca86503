@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useParams, Link, useSearchParams } from "@/lib/router-compat";
+import { useParams, Link } from "@/lib/router-compat";
 import { useTranslation } from "react-i18next";
 import {
   Star, Heart, Share2, ShoppingCart, Minus, Plus,
@@ -75,7 +75,7 @@ function ReviewCard({ review }: { review: DbReview }) {
 export default function ProductDetail() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
+  const searchParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const shopSlug = searchParams.get("shop");
   const { toast } = useToast();
   const { addItem } = useCart();

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useSearchParams, Link } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat";
 import { Search, SlidersHorizontal, Grid3X3, List, Star, X, ChevronDown } from "lucide-react";
 import { useProducts } from "@/lib/products-context-hooks";
 import { useTranslation } from "react-i18next";
@@ -197,7 +197,14 @@ function CategorySlideshow({ categories }: { categories: { id: string; name: str
 export default function Categories() {
   const { t } = useTranslation();
   const { products, categories } = useProducts();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useState(() => new URLSearchParams(window.location.search));
+  const updateSearchParams = (params: URLSearchParams, opts?: { replace?: boolean }) => {
+    const qs = params.toString();
+    const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    if (opts?.replace) window.history.replaceState(null, "", url);
+    else window.history.pushState(null, "", url);
+    setSearchParams(params);
+  };
   const initialCat = searchParams.get("cat") || "all";
   const initialQ = searchParams.get("q") || "";
 
@@ -217,7 +224,7 @@ export default function Categories() {
     const params = new URLSearchParams(searchParams);
     if (cat === "all") params.delete("cat");
     else params.set("cat", cat);
-    setSearchParams(params, { replace: true });
+    updateSearchParams(params, { replace: true });
   };
 
   const handleSearch = (q: string) => {
@@ -226,7 +233,7 @@ export default function Categories() {
     const params = new URLSearchParams(searchParams);
     if (!q) params.delete("q");
     else params.set("q", q);
-    setSearchParams(params, { replace: true });
+    updateSearchParams(params, { replace: true });
   };
 
   const filtered = useMemo(() => {

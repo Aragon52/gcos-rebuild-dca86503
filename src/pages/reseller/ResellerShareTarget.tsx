@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "@/lib/router-compat";
+import { useNavigate } from "@/lib/router-compat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function ResellerShareTarget() {
-  const [searchParams] = useSearchParams();
+  const searchParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const navigate = useNavigate();
 
   useEffect(() => {

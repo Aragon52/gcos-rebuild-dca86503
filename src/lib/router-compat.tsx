@@ -48,17 +48,6 @@ export function useLocation() {
   return useTanLocation();
 }
 
-export function useSearchParams(): [URLSearchParams, (params: Record<string, string> | URLSearchParams) => void] {
-  const search = useTanLocation({ select: (l) => l.searchStr }) as unknown as string;
-  const params = React.useMemo(() => new URLSearchParams(search || ""), [search]);
-  const setParams = React.useCallback((next: Record<string, string> | URLSearchParams) => {
-    const sp = next instanceof URLSearchParams ? next : new URLSearchParams(next);
-    const url = new URL(window.location.href);
-    url.search = sp.toString();
-    window.history.replaceState(null, "", url.toString());
-  }, []);
-  return [params, setParams];
-}
 
 /** Minimal URLSearchParams-based equivalent of react-router's useSearchParams. */
 export function useSearchParams(): [

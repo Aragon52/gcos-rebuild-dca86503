@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "@/lib/router-compat";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { useTranslation } from "react-i18next";
 import { useCustomerAuth } from "@/lib/customer-auth-context-hooks";
 import { resellerPath } from "@/lib/subdomain";
@@ -12,7 +12,7 @@ export default function Register() {
   const { t } = useTranslation();
   const { register } = useCustomerAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const searchParams = useState(() => new URLSearchParams(window.location.search))[0];
   const [name, setName] = useState("");
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "@/lib/router-compat";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { useReseller } from "@/lib/reseller-context-hooks";
 import { Headset, User, Mail, Lock, Eye, EyeOff, Tag } from "lucide-react";
 import { resellerPath } from "@/lib/subdomain";
@@ -13,7 +13,7 @@ export default function ResellerRegister() {
   const { register } = useReseller();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
+  const searchParams = useState(() => new URLSearchParams(window.location.search))[0];
   const [form, setForm] = useState({ firstName: "", lastName: "", emailOrPhone: "", password: "" });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
