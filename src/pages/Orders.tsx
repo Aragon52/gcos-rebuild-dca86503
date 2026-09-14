@@ -94,7 +94,7 @@ export default function Orders() {
           const items = (orderData.order_items || orderData.items || []).map((itemData: Record<string, unknown>) => ({
             id: String(itemData.product_id || itemData.productId || 'unknown'),
             name: String(itemData.name || 'Unknown Product'),
-            image: parseImageUrl(itemData.image || 'https://picsum.photos/seed/placeholder/100/100'),
+            image: parseImageUrl((itemData.image as string) || 'https://picsum.photos/seed/placeholder/100/100'),
             price: Number(itemData.price_at_time || itemData.price || 0),
             quantity: Number(itemData.quantity || itemData.qty || 1),
           }));
