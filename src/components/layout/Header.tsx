@@ -202,7 +202,7 @@ export default function Header() {
             <div className="relative">
               <button onClick={() => setShowLangDropdown(!showLangDropdown)} className="p-1 text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
                 <Globe className="h-5 w-5" />
-                <span className="text-xs font-bold uppercase">{i18n.language}</span>
+                <span className="text-xs font-bold uppercase">{(i18n.language || 'en').split('@')[0].split('-')[0]}</span>
               </button>
               {showLangDropdown && (
                 <div className="absolute right-0 top-full z-50 mt-1 w-32 rounded-md border border-border bg-background shadow-lg">
