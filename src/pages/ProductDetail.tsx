@@ -75,7 +75,7 @@ function ReviewCard({ review }: { review: DbReview }) {
 export default function ProductDetail() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
-  const searchParams = useMemo(() => new URLSearchParams(window.location.search), []);
+  const [searchParams] = useSearchParams();
   const shopSlug = searchParams.get("shop");
   const { toast } = useToast();
   const { addItem } = useCart();

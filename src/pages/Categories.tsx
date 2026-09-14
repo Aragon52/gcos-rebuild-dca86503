@@ -197,7 +197,8 @@ function CategorySlideshow({ categories }: { categories: { id: string; name: str
 export default function Categories() {
   const { t } = useTranslation();
   const { products, categories } = useProducts();
-  const [searchParams, setSearchParams] = useState(() => new URLSearchParams(window.location.search));
+  const [searchParams] = useSearchParams();
+  const setSearchParams = (_p: URLSearchParams) => {}; // URL updates flow through window.history; router re-derives params
   const updateSearchParams = (params: URLSearchParams, opts?: { replace?: boolean }) => {
     const qs = params.toString();
     const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;

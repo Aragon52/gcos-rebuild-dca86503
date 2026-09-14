@@ -14,7 +14,7 @@ export default function ResellerLogin() {
   const { login } = useReseller();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const searchParams = useState(() => new URLSearchParams(window.location.search))[0];
+  const [searchParams] = useSearchParams();
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
