@@ -66,7 +66,7 @@ export default function ARSRetailShopsPage() {
   // Initialize shops with data from resellers
   useEffect(() => {
     if (!resellers || resellers.length === 0) {
-      setShops([]);
+      setShops((prev) => (prev.length === 0 ? prev : []));
       return;
     }
     
@@ -227,17 +227,29 @@ export default function ARSRetailShopsPage() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    
+
     try {
-      const { error } = await supabase.from('retail_shops').delete().eq('id', deleteTarget.id);
-      if (error) throw error;
-      
+      // Full account removal (shop + profile + user + auth + related records).
+      // Deleting only the retail_shops row left the account alive and the shop
+      // reappeared on the next refresh.
+      const response = await fetch('/api/admin/delete-reseller', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resellerId: deleteTarget.id }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to delete reseller account");
+      }
+
       setShops((prev) => prev.filter((s) => s.id !== deleteTarget.id));
       setDeleteDialogOpen(false);
-      toast.success(`${deleteTarget.shopName} deleted`);
+      queryClient.invalidateQueries({ queryKey: ["resellers"] });
+      toast.success(`${deleteTarget.shopName} and its reseller account were deleted`);
     } catch (error) {
       console.error("Error deleting shop:", error);
-      toast.error("Failed to delete shop");
+      toast.error(error instanceof Error ? error.message : "Failed to delete shop");
     }
   };
 

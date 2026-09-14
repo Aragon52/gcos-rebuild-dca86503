@@ -17,22 +17,42 @@ interface Log {
   details: Record<string, unknown> | null;
 }
 
+const PAGE_SIZE = 50;
+
 export default function AdminAuditLogsPage() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
 
+  // The table holds tens of thousands of rows: fetch one page at a time
+  // instead of pulling everything into the browser.
   useEffect(() => {
-    const fetchLogs = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("admin_audit_logs")
-          .select("*")
-          .order("created_at", { ascending: false });
+    let cancelled = false;
 
+    const fetchLogs = async () => {
+      setLoading(true);
+      try {
+        let query = supabase
+          .from("admin_audit_logs")
+          .select("*", { count: "estimated" })
+          .order("created_at", { ascending: false })
+          .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+
+        if (appliedSearch.trim()) {
+          const term = `%${appliedSearch.trim()}%`;
+          query = query.or(`admin_email.ilike.${term},action.ilike.${term},target.ilike.${term}`);
+        }
+
+        const { data, error, count } = await query;
         if (error) throw error;
-        
-        if (data) {
-          setLogs(data.map(d => ({
+        if (cancelled) return;
+
+        setTotal(count || 0);
+        setLogs(
+          (data || []).map((d) => ({
             id: d.id,
             admin_id: d.admin_id,
             admin_email: d.admin_email,
@@ -40,42 +60,74 @@ export default function AdminAuditLogsPage() {
             target: d.target || "-",
             timestamp: new Date(d.created_at).toLocaleString(),
             ip: d.ip_address || "Unknown",
-            details: d.details
-          })));
-        }
+            details: d.details,
+          })),
+        );
       } catch (e) {
         console.error("Failed to fetch audit logs", e);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchLogs();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [page, appliedSearch]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const handleExport = () => {
+    const rows = [
+      ["User", "Action", "Target", "Timestamp", "IP Address"],
+      ...logs.map((l) => [l.admin_email || "System", l.action, l.target, l.timestamp, l.ip]),
+    ];
+    const csv = rows
+      .map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `audit-logs-page-${page + 1}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Audit Logs</h1>
-          <p className="text-sm text-muted-foreground">Track all administrative actions across the system.</p>
+          <p className="text-sm text-muted-foreground">
+            Track all administrative actions across the system. {total.toLocaleString()} entries.
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5 h-8">
-            <Filter className="h-3.5 w-3.5" />
-            Filter
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1.5 h-8">
+          <Button variant="outline" size="sm" className="gap-1.5 h-8" onClick={handleExport} disabled={logs.length === 0}>
             <Download className="h-3.5 w-3.5" />
-            Export
+            Export page
           </Button>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 w-full sm:w-72">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setPage(0);
+          setAppliedSearch(search);
+        }}
+        className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 w-full sm:w-72"
+      >
         <Search className="h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search logs..." className="bg-transparent border-none outline-none text-sm w-full h-6 focus-visible:ring-0 p-0" />
-      </div>
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search user, action or target..."
+          className="bg-transparent border-none outline-none text-sm w-full h-6 focus-visible:ring-0 p-0"
+        />
+      </form>
 
       <Card className="border-none shadow-theme-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -123,6 +175,31 @@ export default function AdminAuditLogsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+          <span className="text-xs text-muted-foreground">
+            Page {page + 1} of {totalPages.toLocaleString()}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8"
+              disabled={page === 0 || loading}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8"
+              disabled={page + 1 >= totalPages || loading}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </Card>
     </div>

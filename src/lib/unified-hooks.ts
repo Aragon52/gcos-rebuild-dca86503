@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { Reseller } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 
+const EMPTY_RESELLERS: Reseller[] = [];
+
 export function useUnifiedResellers() {
   const queryClient = useQueryClient();
 
@@ -28,7 +30,9 @@ export function useUnifiedResellers() {
     };
   }, [queryClient]);
 
-  const { data = [] } = useQuery({
+  // NOTE: falls back to a shared constant, never a fresh []. A new array each
+  // render re-triggered consumers' effects and caused an update loop.
+  const { data = EMPTY_RESELLERS } = useQuery({
     queryKey: ["resellers"],
     queryFn: async () => {
       try {

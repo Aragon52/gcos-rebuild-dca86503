@@ -12,6 +12,8 @@ import {
 } from "recharts";
 import { useDbProducts } from "@/hooks/use-db-products";
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import { adminPath } from "@/lib/subdomain";
 
 const adPerformanceData = [
@@ -27,6 +29,31 @@ const adPerformanceData = [
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { data: dbProducts } = useDbProducts();
+
+  const { data: liveStats = { revenue: 0, orders: 0, resellers: 0, activeToday: 0 } } = useQuery({
+    queryKey: ["admin-dashboard-stats"],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const [ordersRes, resellersRes, todayRes] = await Promise.all([
+        supabase.from("orders").select("total_amount"),
+        supabase.from("reseller_profiles").select("id", { count: "exact", head: true }),
+        supabase.from("orders").select("id", { count: "exact", head: true }).gte("created_at", since),
+      ]);
+
+      const revenue = (ordersRes.data || []).reduce(
+        (sum, o) => sum + Number((o as Record<string, unknown>).total_amount || 0),
+        0,
+      );
+
+      return {
+        revenue,
+        orders: (ordersRes.data || []).length,
+        resellers: resellersRes.count || 0,
+        activeToday: todayRes.count || 0,
+      };
+    },
+    staleTime: 60_000,
+  });
 
   const inventoryData = useMemo(() => {
     if (!dbProducts) return [];
@@ -48,36 +75,38 @@ export default function AdminDashboard() {
     ];
   }, [dbProducts]);
 
-  const stats = [
-    {
-      label: "Total Revenue",
-      value: "$0.00",
-      icon: DollarSign,
-      trend: { value: 0, isPositive: true },
-      iconBg: "bg-emerald-500/10 text-emerald-500",
-    },
-    {
-      label: "Subscriptions",
-      value: "0",
-      icon: Users,
-      trend: { value: 0, isPositive: true },
-      iconBg: "bg-blue-500/10 text-blue-500",
-    },
-    {
-      label: "Sales",
-      value: "0",
-      icon: ShoppingCart,
-      trend: { value: 0, isPositive: true },
-      iconBg: "bg-amber-500/10 text-amber-500",
-    },
-    {
-      label: "Active Now",
-      value: "0",
-      icon: Activity,
-      trend: { value: 0, isPositive: true },
-      iconBg: "bg-rose-500/10 text-rose-500",
-    },
-  ];
+  const stats = useMemo(() => {
+    const revenue = liveStats.revenue.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return [
+      {
+        label: "Total Revenue",
+        value: `$${revenue}`,
+        icon: DollarSign,
+        iconBg: "bg-emerald-500/10 text-emerald-500",
+      },
+      {
+        label: "Resellers",
+        value: String(liveStats.resellers),
+        icon: Users,
+        iconBg: "bg-blue-500/10 text-blue-500",
+      },
+      {
+        label: "Sales",
+        value: String(liveStats.orders),
+        icon: ShoppingCart,
+        iconBg: "bg-amber-500/10 text-amber-500",
+      },
+      {
+        label: "Active Today",
+        value: String(liveStats.activeToday),
+        icon: Activity,
+        iconBg: "bg-rose-500/10 text-rose-500",
+      },
+    ];
+  }, [liveStats]);
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
@@ -96,7 +125,7 @@ export default function AdminDashboard() {
             label={stat.label}
             value={stat.value}
             icon={stat.icon}
-            trend={stat.trend}
+            
             iconBg={stat.iconBg}
           />
         ))}
