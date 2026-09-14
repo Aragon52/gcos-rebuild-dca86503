@@ -67,6 +67,7 @@ import { Route as AdminSlaSiteAdvertisingRouteImport } from './routes/admin.sla.
 import { Route as AdminSlaSqcOrdersRouteImport } from './routes/admin.sla.sqc-orders'
 import { Route as AdminSlaStaffRouteImport } from './routes/admin.sla.staff'
 import { Route as ApipublicRegisterResellerRouteImport } from './routes/api/(public)/register-reseller'
+import { Route as ApiAdminCreateAdminRouteImport } from './routes/api/admin/create-admin'
 import { Route as ApiAdminCreateResellerRouteImport } from './routes/api/admin/create-reseller'
 import { Route as ApiAdminDeleteResellerRouteImport } from './routes/api/admin/delete-reseller'
 import { Route as ApiAdminDeleteStaffRouteImport } from './routes/api/admin/delete-staff'
@@ -368,6 +369,11 @@ const ApipublicRegisterResellerRoute =
     path: '/api/register-reseller',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminCreateAdminRoute = ApiAdminCreateAdminRouteImport.update({
+  id: '/api/admin/create-admin',
+  path: '/api/admin/create-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminCreateResellerRoute = ApiAdminCreateResellerRouteImport.update({
   id: '/api/admin/create-reseller',
   path: '/api/admin/create-reseller',
@@ -461,6 +467,7 @@ export interface FileRoutesByFullPath {
   '/admin/sla/sqc-orders': typeof AdminSlaSqcOrdersRoute
   '/admin/sla/staff': typeof AdminSlaStaffRoute
   '/api/register-reseller': typeof ApipublicRegisterResellerRoute
+  '/api/admin/create-admin': typeof ApiAdminCreateAdminRoute
   '/api/admin/create-reseller': typeof ApiAdminCreateResellerRoute
   '/api/admin/delete-reseller': typeof ApiAdminDeleteResellerRoute
   '/api/admin/delete-staff': typeof ApiAdminDeleteStaffRoute
@@ -527,6 +534,7 @@ export interface FileRoutesByTo {
   '/admin/sla/sqc-orders': typeof AdminSlaSqcOrdersRoute
   '/admin/sla/staff': typeof AdminSlaStaffRoute
   '/api/register-reseller': typeof ApipublicRegisterResellerRoute
+  '/api/admin/create-admin': typeof ApiAdminCreateAdminRoute
   '/api/admin/create-reseller': typeof ApiAdminCreateResellerRoute
   '/api/admin/delete-reseller': typeof ApiAdminDeleteResellerRoute
   '/api/admin/delete-staff': typeof ApiAdminDeleteStaffRoute
@@ -594,6 +602,7 @@ export interface FileRoutesById {
   '/admin/sla/sqc-orders': typeof AdminSlaSqcOrdersRoute
   '/admin/sla/staff': typeof AdminSlaStaffRoute
   '/api/(public)/register-reseller': typeof ApipublicRegisterResellerRoute
+  '/api/admin/create-admin': typeof ApiAdminCreateAdminRoute
   '/api/admin/create-reseller': typeof ApiAdminCreateResellerRoute
   '/api/admin/delete-reseller': typeof ApiAdminDeleteResellerRoute
   '/api/admin/delete-staff': typeof ApiAdminDeleteStaffRoute
@@ -662,6 +671,7 @@ export interface FileRouteTypes {
     | '/admin/sla/sqc-orders'
     | '/admin/sla/staff'
     | '/api/register-reseller'
+    | '/api/admin/create-admin'
     | '/api/admin/create-reseller'
     | '/api/admin/delete-reseller'
     | '/api/admin/delete-staff'
@@ -728,6 +738,7 @@ export interface FileRouteTypes {
     | '/admin/sla/sqc-orders'
     | '/admin/sla/staff'
     | '/api/register-reseller'
+    | '/api/admin/create-admin'
     | '/api/admin/create-reseller'
     | '/api/admin/delete-reseller'
     | '/api/admin/delete-staff'
@@ -794,6 +805,7 @@ export interface FileRouteTypes {
     | '/admin/sla/sqc-orders'
     | '/admin/sla/staff'
     | '/api/(public)/register-reseller'
+    | '/api/admin/create-admin'
     | '/api/admin/create-reseller'
     | '/api/admin/delete-reseller'
     | '/api/admin/delete-staff'
@@ -858,6 +870,7 @@ export interface RootRouteChildren {
   AdminSlaSqcOrdersRoute: typeof AdminSlaSqcOrdersRoute
   AdminSlaStaffRoute: typeof AdminSlaStaffRoute
   ApipublicRegisterResellerRoute: typeof ApipublicRegisterResellerRoute
+  ApiAdminCreateAdminRoute: typeof ApiAdminCreateAdminRoute
   ApiAdminCreateResellerRoute: typeof ApiAdminCreateResellerRoute
   ApiAdminDeleteResellerRoute: typeof ApiAdminDeleteResellerRoute
   ApiAdminDeleteStaffRoute: typeof ApiAdminDeleteStaffRoute
@@ -1273,6 +1286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApipublicRegisterResellerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/create-admin': {
+      id: '/api/admin/create-admin'
+      path: '/api/admin/create-admin'
+      fullPath: '/api/admin/create-admin'
+      preLoaderRoute: typeof ApiAdminCreateAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/create-reseller': {
       id: '/api/admin/create-reseller'
       path: '/api/admin/create-reseller'
@@ -1410,6 +1430,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSlaSqcOrdersRoute: AdminSlaSqcOrdersRoute,
   AdminSlaStaffRoute: AdminSlaStaffRoute,
   ApipublicRegisterResellerRoute: ApipublicRegisterResellerRoute,
+  ApiAdminCreateAdminRoute: ApiAdminCreateAdminRoute,
   ApiAdminCreateResellerRoute: ApiAdminCreateResellerRoute,
   ApiAdminDeleteResellerRoute: ApiAdminDeleteResellerRoute,
   ApiAdminDeleteStaffRoute: ApiAdminDeleteStaffRoute,

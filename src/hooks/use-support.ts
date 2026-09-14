@@ -21,7 +21,11 @@ export function useUnreadSupport() {
   const prevCount = useRef(0);
   const isInitialRender = useRef(true);
   
-  const [sessionId, setSessionId] = useState<string | null>(localStorage.getItem(SESSION_KEY));
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSessionId(localStorage.getItem(SESSION_KEY));
+  }, []);
   
   useEffect(() => {
     const checkSession = () => {
