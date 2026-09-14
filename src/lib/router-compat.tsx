@@ -54,7 +54,7 @@ export function useSearchParams(): [
   URLSearchParams,
   (next: URLSearchParams | Record<string, string> | ((prev: URLSearchParams) => URLSearchParams), opts?: { replace?: boolean }) => void,
 ] {
-  const search = useRouterState({ select: (s) => s.location.search }) as Record<string, unknown>;
+  const search = useRouterState({ select: (s) => s.location.search }) as unknown as Record<string, unknown>;
   const navigate = useTanNavigate();
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(search ?? {})) {

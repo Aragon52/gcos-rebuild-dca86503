@@ -67,6 +67,8 @@ import { Route as AdminSlaSiteAdvertisingRouteImport } from './routes/admin.sla.
 import { Route as AdminSlaSqcOrdersRouteImport } from './routes/admin.sla.sqc-orders'
 import { Route as AdminSlaStaffRouteImport } from './routes/admin.sla.staff'
 import { Route as ApipublicRegisterResellerRouteImport } from './routes/api/(public)/register-reseller'
+import { Route as ApiAdminDeleteResellerRouteImport } from './routes/api/admin/delete-reseller'
+import { Route as ApiAdminResetResellerPasswordRouteImport } from './routes/api/admin/reset-reseller-password'
 import { Route as ResellerProfileCustomizeRouteImport } from './routes/reseller.profile.customize'
 import { Route as ApipublicResellerRequestResetRouteImport } from './routes/api/(public)/reseller/request-reset'
 
@@ -364,6 +366,17 @@ const ApipublicRegisterResellerRoute =
     path: '/api/register-reseller',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAdminDeleteResellerRoute = ApiAdminDeleteResellerRouteImport.update({
+  id: '/api/admin/delete-reseller',
+  path: '/api/admin/delete-reseller',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminResetResellerPasswordRoute =
+  ApiAdminResetResellerPasswordRouteImport.update({
+    id: '/api/admin/reset-reseller-password',
+    path: '/api/admin/reset-reseller-password',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ResellerProfileCustomizeRoute =
   ResellerProfileCustomizeRouteImport.update({
     id: '/customize',
@@ -436,6 +449,8 @@ export interface FileRoutesByFullPath {
   '/admin/sla/sqc-orders': typeof AdminSlaSqcOrdersRoute
   '/admin/sla/staff': typeof AdminSlaStaffRoute
   '/api/register-reseller': typeof ApipublicRegisterResellerRoute
+  '/api/admin/delete-reseller': typeof ApiAdminDeleteResellerRoute
+  '/api/admin/reset-reseller-password': typeof ApiAdminResetResellerPasswordRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
   '/api/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
@@ -498,6 +513,8 @@ export interface FileRoutesByTo {
   '/admin/sla/sqc-orders': typeof AdminSlaSqcOrdersRoute
   '/admin/sla/staff': typeof AdminSlaStaffRoute
   '/api/register-reseller': typeof ApipublicRegisterResellerRoute
+  '/api/admin/delete-reseller': typeof ApiAdminDeleteResellerRoute
+  '/api/admin/reset-reseller-password': typeof ApiAdminResetResellerPasswordRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
   '/api/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
@@ -561,6 +578,8 @@ export interface FileRoutesById {
   '/admin/sla/sqc-orders': typeof AdminSlaSqcOrdersRoute
   '/admin/sla/staff': typeof AdminSlaStaffRoute
   '/api/(public)/register-reseller': typeof ApipublicRegisterResellerRoute
+  '/api/admin/delete-reseller': typeof ApiAdminDeleteResellerRoute
+  '/api/admin/reset-reseller-password': typeof ApiAdminResetResellerPasswordRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
   '/api/(public)/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
@@ -625,6 +644,8 @@ export interface FileRouteTypes {
     | '/admin/sla/sqc-orders'
     | '/admin/sla/staff'
     | '/api/register-reseller'
+    | '/api/admin/delete-reseller'
+    | '/api/admin/reset-reseller-password'
     | '/reseller/profile/customize'
     | '/api/reseller/request-reset'
   fileRoutesByTo: FileRoutesByTo
@@ -687,6 +708,8 @@ export interface FileRouteTypes {
     | '/admin/sla/sqc-orders'
     | '/admin/sla/staff'
     | '/api/register-reseller'
+    | '/api/admin/delete-reseller'
+    | '/api/admin/reset-reseller-password'
     | '/reseller/profile/customize'
     | '/api/reseller/request-reset'
   id:
@@ -749,6 +772,8 @@ export interface FileRouteTypes {
     | '/admin/sla/sqc-orders'
     | '/admin/sla/staff'
     | '/api/(public)/register-reseller'
+    | '/api/admin/delete-reseller'
+    | '/api/admin/reset-reseller-password'
     | '/reseller/profile/customize'
     | '/api/(public)/reseller/request-reset'
   fileRoutesById: FileRoutesById
@@ -809,6 +834,8 @@ export interface RootRouteChildren {
   AdminSlaSqcOrdersRoute: typeof AdminSlaSqcOrdersRoute
   AdminSlaStaffRoute: typeof AdminSlaStaffRoute
   ApipublicRegisterResellerRoute: typeof ApipublicRegisterResellerRoute
+  ApiAdminDeleteResellerRoute: typeof ApiAdminDeleteResellerRoute
+  ApiAdminResetResellerPasswordRoute: typeof ApiAdminResetResellerPasswordRoute
   ApipublicResellerRequestResetRoute: typeof ApipublicResellerRequestResetRoute
 }
 
@@ -1220,6 +1247,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApipublicRegisterResellerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/delete-reseller': {
+      id: '/api/admin/delete-reseller'
+      path: '/api/admin/delete-reseller'
+      fullPath: '/api/admin/delete-reseller'
+      preLoaderRoute: typeof ApiAdminDeleteResellerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/reset-reseller-password': {
+      id: '/api/admin/reset-reseller-password'
+      path: '/api/admin/reset-reseller-password'
+      fullPath: '/api/admin/reset-reseller-password'
+      preLoaderRoute: typeof ApiAdminResetResellerPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reseller/profile/customize': {
       id: '/reseller/profile/customize'
       path: '/customize'
@@ -1329,6 +1370,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSlaSqcOrdersRoute: AdminSlaSqcOrdersRoute,
   AdminSlaStaffRoute: AdminSlaStaffRoute,
   ApipublicRegisterResellerRoute: ApipublicRegisterResellerRoute,
+  ApiAdminDeleteResellerRoute: ApiAdminDeleteResellerRoute,
+  ApiAdminResetResellerPasswordRoute: ApiAdminResetResellerPasswordRoute,
   ApipublicResellerRequestResetRoute: ApipublicResellerRequestResetRoute,
 }
 export const routeTree = rootRouteImport

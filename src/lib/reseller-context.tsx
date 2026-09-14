@@ -276,7 +276,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         const { data: userData, error: userError } = await Promise.race([
           supabase.from('users').select('*').eq('id', userId).single(),
           timeoutPromise
-        ]) as { data: Record<string, unknown> | null, error: { message: string, code?: string } | null };
+        ]) as { data: any, error: { message: string, code?: string } | null };
         
         console.log(`[RESELLER_CONTEXT] Query users table complete. Error: ${userError?.message || 'None'}`);
       
@@ -575,8 +575,8 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
       if (updates.profilePicture !== undefined) profileUpdates.profile_picture = updates.profilePicture;
       if (updates.usdtAddress !== undefined || updates.bankInfo !== undefined) {
         let custom: Record<string, unknown> = {};
-        if (reseller?.payment_method) {
-          try { custom = JSON.parse(reseller.payment_method as string); } catch(e) { /* ignore */ }
+        if ((reseller as any)?.payment_method) {
+          try { custom = JSON.parse((reseller as any).payment_method as string); } catch(e) { /* ignore */ }
         }
         if (updates.usdtAddress !== undefined) custom.usdtAddress = updates.usdtAddress;
         if (updates.bankInfo !== undefined) custom.bankInfo = updates.bankInfo;
