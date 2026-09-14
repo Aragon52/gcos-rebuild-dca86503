@@ -8,7 +8,7 @@ export interface Order {
   customerName: string;
   customerEmail: string;
   total: number;
-  status: "Pending" | "Ongoing" | "Completed" | "Cancelled";
+  status: "Pending" | "Ongoing" | "Completed" | "Cancelled" | "Shipped";
   createdAt: string;
   items: number; 
   products: number; 

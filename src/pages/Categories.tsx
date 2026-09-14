@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Link } from "@/lib/router-compat";
+import { Link, useSearchParams } from "@/lib/router-compat";
 import { Search, SlidersHorizontal, Grid3X3, List, Star, X, ChevronDown } from "lucide-react";
 import { useProducts } from "@/lib/products-context-hooks";
 import { useTranslation } from "react-i18next";

@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useParams, Link } from "@/lib/router-compat";
+import { useParams, Link, useSearchParams } from "@/lib/router-compat";
 import { useTranslation } from "react-i18next";
 import {
   Star, Heart, Share2, ShoppingCart, Minus, Plus,
