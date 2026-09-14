@@ -434,7 +434,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         selectedProductIds,
         usdtAddress: custom.usdtAddress || '',
         bankInfo: bankInfoObj,
-      });
+      } as any);
       console.log(`[RESELLER_CONTEXT] Fetch complete successfully.`);
       return true;
       } catch (error: unknown) {
