@@ -1,6 +1,6 @@
 import { Reseller } from "@/lib/types";
 
-export const STATIC_RESELLERS: Reseller[] = [
+export const STATIC_RESELLERS = [
   {
     id: "R20551",
     referredBy: "admin_john",
@@ -31,4 +31,4 @@ export const STATIC_RESELLERS: Reseller[] = [
     level: "2",
     selectedProductIds: []
   }
-];
+] as unknown as Reseller[];
