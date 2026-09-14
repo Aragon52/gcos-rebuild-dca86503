@@ -18,12 +18,15 @@ export default function Footer() {
 
   const referralCode = searchParams.get('ref') || '';
 
-  const isDev = typeof window !== 'undefined' && (
-    window.location.hostname.includes('ais-dev-') || 
-    window.location.hostname.includes('ais-pre-') || 
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1'
-  );
+  const [isDev, setIsDev] = useState(false);
+  useEffect(() => {
+    setIsDev(
+      window.location.hostname.includes('ais-dev-') ||
+      window.location.hostname.includes('ais-pre-') ||
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1'
+    );
+  }, []);
 
   const accountLinks = [
     { label: t('nav.home'), href: '/' },
