@@ -8,9 +8,24 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { ThemeProvider } from "next-themes";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import "@/lib/i18n";
+
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { CartProvider } from "@/lib/cart-context";
+import { WishlistProvider } from "@/lib/wishlist-context";
+import { ResellerProvider } from "@/lib/reseller-context";
+import { CustomerAuthProvider } from "@/lib/customer-auth-context";
+import { AdminAuthProvider } from "@/lib/admin-auth-context";
+import { ProductsProvider } from "@/lib/products-context";
+import { ProductSyncProvider } from "@/context/ProductSyncContext";
+import { SeasonalThemeProvider } from "@/lib/seasonal-theme-context";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 function NotFoundComponent() {
   return (
@@ -77,14 +92,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "GCOS — Global Commerce Online Store" },
+      {
+        name: "description",
+        content:
+          "GCOS marketplace — shop products, become a reseller, and manage your online store.",
+      },
+      { property: "og:title", content: "GCOS — Global Commerce Online Store" },
+      {
+        property: "og:description",
+        content:
+          "GCOS marketplace — shop products, become a reseller, and manage your online store.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -92,6 +113,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -102,7 +129,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
@@ -119,8 +146,31 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <ErrorBoundary>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <TooltipProvider>
+            <ProductsProvider>
+              <ProductSyncProvider>
+                <CartProvider>
+                  <WishlistProvider>
+                    <ResellerProvider>
+                      <SeasonalThemeProvider>
+                        <CustomerAuthProvider>
+                          <AdminAuthProvider>
+                            <Toaster />
+                            <Sonner />
+                            <Outlet />
+                          </AdminAuthProvider>
+                        </CustomerAuthProvider>
+                      </SeasonalThemeProvider>
+                    </ResellerProvider>
+                  </WishlistProvider>
+                </CartProvider>
+              </ProductSyncProvider>
+            </ProductsProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 }
