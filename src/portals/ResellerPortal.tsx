@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "@/lib/router-compat";
 import ResellerLayout from "@/components/reseller/ResellerLayout";
 import ResellerDashboard from "@/pages/reseller/ResellerDashboard";
 import ResellerShop from "@/pages/reseller/ResellerShop";

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { useProducts } from "@/lib/products-context-hooks";
 import { ProductCard } from "@/components/products/ProductCard";
 import { useTranslation } from "react-i18next";

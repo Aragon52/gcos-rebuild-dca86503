@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useReseller } from "@/lib/reseller-context-hooks";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "@/lib/router-compat";
 import { resellerPath } from "@/lib/subdomain";
 import { Package, ShoppingCart, CreditCard, Clock, CheckCircle, ArrowRight } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";

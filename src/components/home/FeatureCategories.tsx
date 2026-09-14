@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { useProducts, getCategoryImage } from "@/lib/products-context-hooks";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";

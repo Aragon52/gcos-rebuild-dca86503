@@ -5,7 +5,7 @@ import {
   UserCheck, Wallet, Puzzle, Megaphone, Newspaper, Headset,
   ShieldCheck, Landmark, CreditCard,
 } from "lucide-react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link } from "@/lib/router-compat";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useAdminAuth, isPathAllowed, type SLARole } from "@/lib/admin-auth-context-hooks";

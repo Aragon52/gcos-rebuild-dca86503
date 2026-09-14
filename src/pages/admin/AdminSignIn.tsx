@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import LogoIcon from "@/components/brand/LogoIcon";
 import { useAdminAuth } from "@/lib/admin-auth-context-hooks";

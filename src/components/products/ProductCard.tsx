@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { useTranslation } from "react-i18next";
 import { Heart, ShoppingCart, Star, GitCompare, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";

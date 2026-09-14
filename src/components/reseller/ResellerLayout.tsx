@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "@/lib/router-compat";
 import { Bell, Headset } from "lucide-react";
 import { useReseller } from "@/lib/reseller-context-hooks";
 import ResellerSidebar from "./ResellerSidebar";

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { useCart } from "@/lib/cart-context-hooks";
 import { useTranslation } from "react-i18next";
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, ShieldCheck, Truck, RotateCcw, MessageSquare } from "lucide-react";

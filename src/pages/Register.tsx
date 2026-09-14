@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "@/lib/router-compat";
 import { useTranslation } from "react-i18next";
 import { useCustomerAuth } from "@/lib/customer-auth-context-hooks";
 import { resellerPath } from "@/lib/subdomain";

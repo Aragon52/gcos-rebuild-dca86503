@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from "@/lib/router-compat";
 import { FileText, RotateCcw, Settings, ShieldAlert, Mail, MapPin } from 'lucide-react';
 import LogoIcon from '@/components/brand/LogoIcon';
 import { supabase } from '@/lib/supabase';

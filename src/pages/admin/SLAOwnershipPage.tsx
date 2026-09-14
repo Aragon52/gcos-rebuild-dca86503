@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useDbSlaAdmins, dbAdminToLegacy, getNextAdminId } from "@/hooks/use-db-sla";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminAuth } from "@/lib/admin-auth-context-hooks";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { adminPath } from "@/lib/subdomain";
 import { createClient } from "@supabase/supabase-js";
 

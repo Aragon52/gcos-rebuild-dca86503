@@ -1,6 +1,6 @@
 import { useReseller } from "@/lib/reseller-context-hooks";
 import { Package, ShoppingBag, Headphones, ChevronRight, DollarSign, Award, TrendingUp, Eye, Clock, Share2 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "@/lib/router-compat";
 import { resellerPath } from "@/lib/subdomain";
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";

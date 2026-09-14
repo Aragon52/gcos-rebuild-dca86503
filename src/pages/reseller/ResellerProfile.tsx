@@ -11,7 +11,7 @@ const LEVEL_BADGE_MAP: Record<string, number> = {
   "VIP-4": 4,
   "VIP-5": 5,
 };
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { resellerPath, getStorefrontUrl } from "@/lib/subdomain";
 import { Button } from "@/components/ui/button";
 import FaqTermsSheet from "@/components/reseller/FaqTermsSheet";

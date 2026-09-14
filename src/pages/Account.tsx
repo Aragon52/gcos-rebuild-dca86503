@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { useCustomerAuth } from "@/lib/customer-auth-context-hooks";
 import { useTranslation } from "react-i18next";
 import {

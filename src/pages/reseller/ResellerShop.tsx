@@ -3,7 +3,7 @@ import { Search, Check, Plus, Filter, Square, LayoutGrid, Grid3x3 } from "lucide
 import { useReseller, LEVEL_PROFIT_MAP } from "@/lib/reseller-context-hooks";
 import { useProducts } from "@/lib/products-context-hooks";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "@/lib/router-compat";
 import { useTranslation } from "react-i18next";
 
 export default function ResellerShop() {

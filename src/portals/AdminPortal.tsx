@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "@/lib/router-compat";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { RoleGuard } from "@/components/admin/RoleGuard";
 import AdminDashboard from "@/pages/admin/AdminDashboard";

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "@/lib/router-compat";
 import { useDbProducts } from "@/hooks/use-db-products";
 import type { Product, Reseller } from "@/lib/types";
 import { adminPath } from "@/lib/subdomain";

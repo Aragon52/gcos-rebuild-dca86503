@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { useReseller } from "@/lib/reseller-context-hooks";
 import { User, Mail, Lock, Eye, EyeOff, Tag, X } from "lucide-react";
 import LogoIcon from "@/components/brand/LogoIcon";

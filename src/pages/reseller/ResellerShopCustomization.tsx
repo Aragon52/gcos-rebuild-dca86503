@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { useReseller, type StoreTheme } from "@/lib/reseller-context-hooks";
 import { toast } from "sonner";
 import { compressImageToBase64 } from "@/lib/storage-utils";

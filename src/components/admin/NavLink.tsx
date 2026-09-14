@@ -1,4 +1,4 @@
-import { NavLink as RouterNavLink } from "react-router-dom";
+import { NavLink as RouterNavLink } from "@/lib/router-compat";
 import { cn } from "@/lib/utils";
 
 interface NavLinkProps {

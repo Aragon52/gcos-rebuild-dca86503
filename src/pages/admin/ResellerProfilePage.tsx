@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { adminPath } from "@/lib/subdomain";
 import { 
   Search, Mail, Key, MessageSquare, Wallet, Clock, Package

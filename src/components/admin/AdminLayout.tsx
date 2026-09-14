@@ -1,6 +1,6 @@
 import { AppSidebar } from "@/components/admin/AppSidebar";
 import { Search, ChevronRight, Moon, Sun, PinOff, LogOut, PanelLeft } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "@/lib/router-compat";
 import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { adminPath } from "@/lib/subdomain";

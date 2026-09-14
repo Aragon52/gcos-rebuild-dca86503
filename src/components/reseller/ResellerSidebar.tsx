@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "@/lib/router-compat";
 import { LayoutDashboard, ShoppingBag, Package, MessageSquare, UserCog, LogOut, Home } from "lucide-react";
 import { useReseller } from "@/lib/reseller-context-hooks";
 import LogoIcon from "@/components/brand/LogoIcon";

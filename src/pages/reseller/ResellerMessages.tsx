@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "@/lib/router-compat";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Headset, Users, Send, ImagePlus, ShoppingBag, Clock } from "lucide-react";
 import { supabase } from "@/lib/supabase";

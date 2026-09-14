@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate } from "@/lib/router-compat";
 import { useAdminAuth, isPathAllowed } from "@/lib/admin-auth-context-hooks";
 import { adminPath } from "@/lib/subdomain";
 import type { ReactNode } from "react";

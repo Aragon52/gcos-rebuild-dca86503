@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Gift, Sparkles, ArrowRight, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { resellerPath } from "@/lib/subdomain";
 
 export default function PromotionalBonusBanner() {

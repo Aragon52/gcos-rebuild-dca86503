@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link } from "@/lib/router-compat";
 import { useTranslation } from "react-i18next";
 import { useReseller, type StoreTheme, type ResellerProfile, LEVEL_PROFIT_MAP } from "@/lib/reseller-context-hooks";
 import { useProducts } from "@/lib/products-context-hooks";

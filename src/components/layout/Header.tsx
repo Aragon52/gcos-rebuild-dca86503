@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from "@/lib/router-compat";
 import { Search, ChevronDown, Menu, X, ShoppingCart, User, LogOut, Bell, Headset, Globe } from 'lucide-react';
 import { useCart } from '@/lib/cart-context-hooks';
 import { useCustomerAuth } from '@/lib/customer-auth-context-hooks';
@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES } from '@/lib/i18n';
 import { resellerPath } from '@/lib/subdomain';
 import { useReseller } from '@/lib/reseller-context-hooks';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from "@/lib/router-compat";
 import { toast } from 'sonner';
 
 export default function Header() {

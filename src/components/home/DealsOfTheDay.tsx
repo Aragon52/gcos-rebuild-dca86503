@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Clock, Truck, ShieldCheck, RotateCcw, Star } from "lucide-react";
 import { useProducts } from "@/lib/products-context-hooks";
 import { Button } from "@/components/ui/button";

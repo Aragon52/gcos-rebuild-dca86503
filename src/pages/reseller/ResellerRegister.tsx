@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "@/lib/router-compat";
 import { useReseller } from "@/lib/reseller-context-hooks";
 import { Headset, User, Mail, Lock, Eye, EyeOff, Tag } from "lucide-react";
 import { resellerPath } from "@/lib/subdomain";

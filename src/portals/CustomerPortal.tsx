@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route } from "@/lib/router-compat";
 import MainLayout from "@/components/layout/MainLayout";
 import Index from "@/pages/Index";
 import Categories from "@/pages/Categories";
