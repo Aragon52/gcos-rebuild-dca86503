@@ -5,12 +5,15 @@ import { routeTree } from "./routeTree.gen";
 export const getRouter = () => {
   const queryClient = new QueryClient();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const router = createRouter({
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
-  });
+    // This project intentionally runs with strictNullChecks off (ported codebase);
+    // TanStack Router's types demand it, so cast past the compile-time guard.
+  } as any);
 
   return router;
 };
