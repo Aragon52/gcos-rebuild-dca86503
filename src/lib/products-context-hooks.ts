@@ -49,12 +49,15 @@ export function mapCategories(dbCategories: Record<string, unknown>[], products?
   return dbCategories.map((c) => {
     const name = String(c.name || "");
     const slug = c.slug ? String(c.slug) : name.toLowerCase().replace(/\s+/g, '-');
+    const count = products
+      ? products.filter(p => (p.category || "").toLowerCase().replace(/\s+/g, '-') === slug).length
+      : Number(c.product_count ?? 0);
     return {
       id: String(c.id),
       name,
       slug,
       image: getCategoryImage(slug, String(c.image ?? ""), products, name),
-      count: Number(c.product_count ?? 0),
+      count,
     };
   });
 }
