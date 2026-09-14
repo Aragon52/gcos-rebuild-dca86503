@@ -23,7 +23,7 @@ export default function ResellerDashboard() {
   const { reseller } = useReseller();
   const { t } = useTranslation();
   const location = useLocation();
-  const sharedData = location.state?.sharedData;
+  const sharedData = (location.state as any)?.sharedData;
   
   const [adBoostOpen, setAdBoostOpen] = useState(false);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "center" });

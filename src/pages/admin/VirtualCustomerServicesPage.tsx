@@ -149,7 +149,7 @@ export default function VirtualCustomerServicesPage() {
     };
   }, []);
 
-  const resellerIdFromState = location.state?.resellerId;
+  const resellerIdFromState = (location.state as any)?.resellerId;
 
   useEffect(() => {
     if (resellers.length > 0 && !hasInitialized.current) {

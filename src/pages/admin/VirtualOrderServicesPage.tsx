@@ -40,7 +40,7 @@ export default function VirtualOrderServicesPage() {
   
   const [virtualProfiles, setVirtualProfiles] = useState<VirtualProfile[]>(STATIC_VIRTUAL_PROFILES as VirtualProfile[]);
   const [selectedVirtualProfile, setSelectedVirtualProfile] = useState<VirtualProfile | null>(STATIC_VIRTUAL_PROFILES[0] as VirtualProfile);
-  const [selectedReseller, setSelectedReseller] = useState<Reseller | null>(location.state?.reseller || null);
+  const [selectedReseller, setSelectedReseller] = useState<Reseller | null>((location.state as any)?.reseller || null);
   const [onlineStatus, setOnlineStatus] = useState<Record<string, boolean>>({});
   
   const [cart, setCart] = useState<CartItem[]>([]);

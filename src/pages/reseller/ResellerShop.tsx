@@ -14,7 +14,7 @@ export default function ResellerShop() {
   const { products, categories, isLoading } = useProducts();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [tab, setTab] = useState<"catalog" | "my">(location.state?.tab || "catalog");
+  const [tab, setTab] = useState<"catalog" | "my">((location.state as any)?.tab || "catalog");
   const [viewMode, setViewMode] = useState<1 | 2 | 3>(2);
   const scrollRef = React.useRef<HTMLDivElement>(null);
 

@@ -547,13 +547,13 @@ export default function ResellerMessages() {
   const { reseller } = useReseller();
   const { t } = useTranslation();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState(location.state?.tab || "support");
+  const [activeTab, setActiveTab] = useState((location.state as any)?.tab || "support");
 
   useEffect(() => {
-    if (location.state?.tab) {
-      setActiveTab(location.state.tab);
+    if ((location.state as any)?.tab) {
+      setActiveTab((location.state as any).tab);
     }
-  }, [location.state?.tab]);
+  }, [(location.state as any)?.tab]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-2rem)]">

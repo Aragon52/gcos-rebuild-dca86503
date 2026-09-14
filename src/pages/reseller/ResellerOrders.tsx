@@ -19,7 +19,7 @@ export default function ResellerOrders() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<FilterTab>(location.state?.tab || "All");
+  const [activeTab, setActiveTab] = useState<FilterTab>((location.state as any)?.tab || "All");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const updateStatusMutation = useUpdateOrderStatus();
