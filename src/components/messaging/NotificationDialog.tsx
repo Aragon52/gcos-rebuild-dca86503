@@ -72,7 +72,9 @@ export default function NotificationDialog({ open, onClose }: { open: boolean; o
     }
   });
 
-  const [selectedNotif, setSelectedNotif] = useState<Record<string, unknown> | null>(null);
+  type NotifItem = { id: string; title: string; message: string; department: string; timestamp: string; read: boolean; type: string };
+
+  const [selectedNotif, setSelectedNotif] = useState<NotifItem | null>(null);
 
   useEffect(() => {
     if (open && notifications.length > 0) {
@@ -134,7 +136,7 @@ export default function NotificationDialog({ open, onClose }: { open: boolean; o
               No notifications yet
             </div>
           ) : (
-            notifications.map((n: Record<string, unknown>) => (
+            (notifications as NotifItem[]).map((n) => (
               <button
                 key={n.id}
                 onClick={() => setSelectedNotif(n)}
