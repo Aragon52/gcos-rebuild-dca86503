@@ -25,6 +25,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+// Orders store either a short numeric reseller number or a raw UUID; the raw
+// "GRS<uuid>" concatenation is unreadable, so shorten UUIDs for display.
+function formatResellerRef(raw: string) {
+  const id = String(raw || "").replace(/^GRS-?/i, "");
+  if (!id || id === "N/A") return "—";
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  return isUuid ? `ID ${id.slice(0, 8)}…` : `GRS-${id}`;
+}
+
 export default function AdminOrdersPage() {
   const { data: orders, isLoading, loadMore, hasMore, loadingMore } = useOrders(20);
   const resellers = useUnifiedResellers();
@@ -179,7 +188,14 @@ export default function AdminOrdersPage() {
                 filtered.map((order) => (
                   <tr key={order.id} className="hover:bg-accent/50 transition-colors text-xs">
                     <td className="p-3.5 pl-5 font-medium text-foreground">{order.id}</td>
-                    <td className="p-3.5 text-muted-foreground">{order.resellerId}</td>
+                    <td className="p-3.5 text-muted-foreground" title={order.resellerId}>
+                      <div className="flex flex-col">
+                        {(order.shopName || order.resellerName) && (
+                          <span className="font-medium text-foreground">{order.shopName || order.resellerName}</span>
+                        )}
+                        <span className="text-[10px] text-muted-foreground">{formatResellerRef(order.resellerId)}</span>
+                      </div>
+                    </td>
                     <td className="p-3.5 text-muted-foreground">{order.staffUsername}</td>
                     <td className="p-3.5 text-muted-foreground">{order.adminUsername}</td>
                     <td className="p-3.5 text-foreground text-center">{order.products}</td>

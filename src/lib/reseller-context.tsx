@@ -301,7 +301,9 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         .from('reseller_profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        // maybeSingle: admins/staff have no reseller profile, which is expected
+        // and should not surface as a 406 error on every admin page.
+        .maybeSingle();
       
       console.log(`[RESELLER_CONTEXT] Query reseller_profiles complete. Error: ${profileError?.message || 'None'}`);
       

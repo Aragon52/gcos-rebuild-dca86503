@@ -4,6 +4,8 @@ import { DollarSign, ArrowUpRight, ArrowDownRight, TrendingUp, Wallet, Landmark 
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useAdminAccess } from "@/hooks/use-admin-access";
 import { useMemo } from "react";
+import { cn } from "@/lib/utils";
+import { useDepositRequests, useWithdrawalRequests } from "@/hooks/use-financial-requests";
 
 interface ACHTransaction {
   id: string;
@@ -12,6 +14,7 @@ interface ACHTransaction {
   amount: number;
   status: "Completed" | "Pending" | "Failed";
   date: string;
+  rawDate?: string;
   referralId?: string;
   referredBy?: string;
   memberOfAdminId?: string;
@@ -20,10 +23,44 @@ interface ACHTransaction {
 export default function ACHFinancialPage() {
   const { canSeeAll, allowedReferralIds, allowedStaffIds, allowedStaffDocIds, allowedAdminIds } = useAdminAccess();
   
+  const { data: deposits = [] } = useDepositRequests();
+  const { data: withdrawals = [] } = useWithdrawalRequests();
+
   const transactions = useMemo(() => {
-    const data: ACHTransaction[] = []; // Mock data
-    return data;
-  }, []);
+    const mapStatus = (s: string): ACHTransaction["status"] =>
+      s === "Approved" ? "Completed" : s === "Rejected" ? "Failed" : "Pending";
+
+    const rows: ACHTransaction[] = [
+      ...deposits.map((d) => ({
+        id: `dep-${d.id}`,
+        customer: d.resellerName || d.resellerId,
+        type: "Deposit" as const,
+        amount: Number(d.amount || 0),
+        status: mapStatus(d.status),
+        date: d.createdAt ? new Date(d.createdAt).toLocaleString() : "-",
+        rawDate: d.createdAt,
+        referralId: d.referralId,
+        referredBy: d.staffId,
+        memberOfAdminId: d.memberOfAdminId,
+      })),
+      ...withdrawals.map((w) => ({
+        id: `wd-${w.id}`,
+        customer: w.resellerName || w.resellerId,
+        type: "Withdrawal" as const,
+        amount: Number(w.amount || 0),
+        status: mapStatus(w.status),
+        date: w.createdAt ? new Date(w.createdAt).toLocaleString() : "-",
+        rawDate: w.createdAt,
+        referralId: w.referralId,
+        referredBy: w.staffId,
+        memberOfAdminId: w.memberOfAdminId,
+      })),
+    ];
+
+    return rows.sort(
+      (a, b) => new Date(b.rawDate || 0).getTime() - new Date(a.rawDate || 0).getTime()
+    );
+  }, [deposits, withdrawals]);
 
   const filtered = useMemo(() => {
     if (canSeeAll) return transactions;
@@ -34,6 +71,21 @@ export default function ACHFinancialPage() {
     );
   }, [transactions, canSeeAll, allowedReferralIds, allowedStaffIds, allowedStaffDocIds, allowedAdminIds]);
 
+  const summary = useMemo(() => {
+    const money = (n: number) =>
+      `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const completed = filtered.filter((t) => t.status === "Completed");
+    const pending = filtered.filter((t) => t.status === "Pending");
+    const volume = completed.reduce((s, t) => s + t.amount, 0);
+    const pendingTotal = pending.reduce((s, t) => s + t.amount, 0);
+    const decided = filtered.filter((t) => t.status !== "Pending").length;
+    return {
+      volume: money(volume),
+      pending: money(pendingTotal),
+      successRate: decided > 0 ? `${((completed.length / decided) * 100).toFixed(1)}%` : "—",
+    };
+  }, [filtered]);
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -42,9 +94,9 @@ export default function ACHFinancialPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatCard label="Total ACH Volume" value="$124,500" icon={DollarSign} trend={{ value: 12.5, isPositive: true }} />
-        <StatCard label="Pending Settlements" value="$18,240" icon={Wallet} trend={{ value: 5.2, isPositive: false }} />
-        <StatCard label="Success Rate" value="94.8%" icon={TrendingUp} trend={{ value: 0.8, isPositive: true }} />
+        <StatCard label="Total ACH Volume" value={summary.volume} icon={DollarSign} />
+        <StatCard label="Pending Settlements" value={summary.pending} icon={Wallet} />
+        <StatCard label="Success Rate" value={summary.successRate} icon={TrendingUp} />
       </div>
 
       <Card className="border-none shadow-theme-sm overflow-hidden">
@@ -92,5 +144,3 @@ export default function ACHFinancialPage() {
     </div>
   );
 }
-
-import { cn } from "@/lib/utils";

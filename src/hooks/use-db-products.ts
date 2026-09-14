@@ -96,14 +96,23 @@ export function useDbProducts() {
     queryKey: ["db-products"],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(5000);
-        
-        if (error) throw error;
-        return (data || []).map(item => dbProductToLegacy(item));
+        // Supabase caps a single response at 1000 rows regardless of .limit(),
+        // so page through with .range() to get the full catalogue.
+        const CHUNK = 1000;
+        const all: unknown[] = [];
+        for (let from = 0; from < 20000; from += CHUNK) {
+          const { data, error } = await supabase
+            .from("products")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .range(from, from + CHUNK - 1);
+
+          if (error) throw error;
+          if (!data || data.length === 0) break;
+          all.push(...data);
+          if (data.length < CHUNK) break;
+        }
+        return all.map(item => dbProductToLegacy(item as never));
       } catch (error) {
         console.error("Error fetching products from Supabase:", error);
         return [];
