@@ -1,5 +1,5 @@
 import { Link } from "@/lib/router-compat";
-import { useProducts } from "@/lib/products-context-hooks";
+import { useProducts, getCategoryImage } from "@/lib/products-context-hooks";
 import { useTranslation } from "react-i18next";
 import { CategorySkeleton } from "@/components/products/ProductCardSkeleton";
 
