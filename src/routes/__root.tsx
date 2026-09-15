@@ -147,31 +147,33 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <TooltipProvider>
-            <ProductsProvider>
-              <ProductSyncProvider>
-                <CartProvider>
-                  <WishlistProvider>
-                    <ResellerProvider>
-                      <SeasonalThemeProvider>
-                        <CustomerAuthProvider>
-                          <AdminAuthProvider>
-                            <Toaster />
-                            <Sonner />
-                            <Outlet />
-                          </AdminAuthProvider>
-                        </CustomerAuthProvider>
-                      </SeasonalThemeProvider>
-                    </ResellerProvider>
-                  </WishlistProvider>
-                </CartProvider>
-              </ProductSyncProvider>
-            </ProductsProvider>
-          </TooltipProvider>
-        </ThemeProvider>
-      </ErrorBoundary>
+      <I18nextProvider i18n={i18n}>
+        <ErrorBoundary>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <TooltipProvider>
+              <ProductsProvider>
+                <ProductSyncProvider>
+                  <CartProvider>
+                    <WishlistProvider>
+                      <ResellerProvider>
+                        <SeasonalThemeProvider>
+                          <CustomerAuthProvider>
+                            <AdminAuthProvider>
+                              <Toaster />
+                              <Sonner />
+                              <Outlet />
+                            </AdminAuthProvider>
+                          </CustomerAuthProvider>
+                        </SeasonalThemeProvider>
+                      </ResellerProvider>
+                    </WishlistProvider>
+                  </CartProvider>
+                </ProductSyncProvider>
+              </ProductsProvider>
+            </TooltipProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
+      </I18nextProvider>
     </QueryClientProvider>
   );
 }
