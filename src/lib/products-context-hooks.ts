@@ -36,7 +36,11 @@ export function getCategoryImage(slug: string, providedImage?: string, products?
     return providedImage;
   }
 
-  // Try to find a product image from the inventory for this category (slug-normalized match)
+  // Prefer the curated, label-accurate category picture
+  const curated = CATEGORY_DEFAULT_IMAGES[slug] || CATEGORY_DEFAULT_IMAGES[slug.replace(/&-/g, "")];
+  if (curated) return curated;
+
+  // Otherwise use a product image from the inventory for this category (slug-normalized match)
   if (products && categoryName) {
     const catSlug = slugify(categoryName);
     const productWithImage = products.find(p =>
@@ -47,7 +51,7 @@ export function getCategoryImage(slug: string, providedImage?: string, products?
     }
   }
 
-  return CATEGORY_DEFAULT_IMAGES[slug] || CATEGORY_DEFAULT_IMAGES[slug.replace(/&-/g, "")] || "";
+  return "";
 }
 
 export function mapCategories(dbCategories: Record<string, unknown>[], products?: Product[]): Category[] {
