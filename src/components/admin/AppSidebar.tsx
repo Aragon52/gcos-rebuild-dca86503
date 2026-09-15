@@ -169,6 +169,7 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
+      hoverExpand
       className="transition-all duration-300 ease-in-out"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
