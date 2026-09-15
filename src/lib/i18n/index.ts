@@ -124,7 +124,7 @@ if (!i18n.isInitialized) {
     supportedLngs: Object.keys(resources),
     nonExplicitSupportedLngs: true,
     load: "languageOnly",
-    initImmediate: false,
+    
     react: { useSuspense: false },
     detection: {
       order: ["localStorage", "navigator"],
