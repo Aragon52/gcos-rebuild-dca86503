@@ -4,6 +4,7 @@ import Footer from '@/components/layout/Footer';
 import MobileNav from '@/components/layout/MobileNav';
 import { detectPortal } from '@/lib/subdomain';
 import { SeasonalDecorations } from '@/components/home/SeasonalDecorations';
+import { PWAInstallButton } from '@/components/pwa/PWAInstallButton';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -24,6 +25,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
     <>
       <SeasonalDecorations />
       <Header />
+      <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 lg:px-8">
+        <PWAInstallButton variant="banner" />
+      </div>
       <main className="min-h-screen pb-16 md:pb-0">{children}</main>
       <div className="hidden md:block">
         <Footer />

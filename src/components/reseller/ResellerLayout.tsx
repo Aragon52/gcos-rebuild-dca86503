@@ -13,6 +13,7 @@ import { useUnreadSupport } from "@/hooks/use-support";
 import { resellerPath } from "@/lib/subdomain";
 import { supabase } from "@/lib/supabase";
 import PromotionalBonusBanner from "./PromotionalBonusBanner";
+import { PWAInstallButton } from "@/components/pwa/PWAInstallButton";
 
 const PUBLIC_PATHS_CANONICAL = ["/reseller/login", "/reseller/register"];
 const PUBLIC_PATHS = (() => {
@@ -114,7 +115,8 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
         <PromotionalBonusBanner />
 
         {/* Desktop header */}
-        <header className="hidden md:flex items-center justify-end px-6 py-4 border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-40">
+        <header className="hidden md:flex items-center justify-between px-6 py-4 border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-40">
+          <PWAInstallButton />
           <div className="flex items-center gap-4">
             <button onClick={() => setShowNotifications(true)} className="relative p-2 rounded-full hover:bg-accent transition-colors group">
               <Bell className="h-5 w-5 text-muted-foreground group-hover:text-foreground" />
@@ -138,6 +140,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
             <LogoWordmark size="sm" />
           </div>
           <div className="flex items-center gap-2">
+            <PWAInstallButton />
             <button onClick={() => setShowNotifications(true)} className="relative p-1">
               <Bell className="h-5 w-5 text-muted-foreground" />
               {unreadNotifs > 0 && (
