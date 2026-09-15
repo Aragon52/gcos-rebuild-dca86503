@@ -16,36 +16,14 @@
 export type PortalType = "customer" | "reseller" | "admin";
 
 /**
- * Returns true when portal identity is determined by VITE_PORTAL env var
- * or dev override. In this mode, routes are served at root "/" with no prefix.
+ * Legacy portal-lock flag.
+ *
+ * URL shortening on the admin./reseller. subdomains is now handled by the
+ * router rewrite in src/lib/portal-host.ts, so application code must always
+ * build canonical "/admin/..." and "/reseller/..." paths. Keeping this false
+ * also guarantees identical markup on the server and in the browser.
  */
 export function isAppModeDriven(): boolean {
-  try {
-    const host = window.location.hostname;
-    
-    // 0. Manual override from staging (highest priority)
-    if (typeof window !== 'undefined' && localStorage.getItem("dev_portal_override")) {
-      return true;
-    }
-
-    // 1. Subdomain presence
-    if (host.startsWith("admin.") || host.startsWith("administration.") || 
-        host.startsWith("reseller.") || host.startsWith("retailshops.")) {
-      return true;
-    }
-
-    // 2. Explicit environment lock
-    const portalEnv = import.meta.env.VITE_PORTAL || import.meta.env.VITE_APP_MODE;
-    if (portalEnv) {
-      const isSharedPreview = host.includes('ais-pre-') || host.includes('run.app');
-      const isLocal = host === 'localhost' || host === '127.0.0.1' || host.includes('ais-dev-');
-      
-      if (!isSharedPreview && !isLocal) {
-        return true;
-      }
-    }
-  } catch (e) { /* ignore */ }
-  
   return false;
 }
 
