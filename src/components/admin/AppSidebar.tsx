@@ -147,17 +147,31 @@ export function AppSidebar() {
   const location = useLocation();
   const { session } = useAdminAuth();
   const role = session?.role || "User";
-  const { open } = useSidebar();
+  const { open, setOpen, isMobile } = useSidebar();
 
   const navGroups = useMemo(() => {
     const transformed = transformNavGroups(canonicalNavGroups);
     return filterByRole(transformed, role);
   }, [role]);
 
+  // Expand on hover, fold back when the pointer leaves (desktop only).
+  const handleMouseEnter = () => {
+    if (!isMobile) setOpen(true);
+  };
+  const handleMouseLeave = () => {
+    if (!isMobile) setOpen(false);
+  };
+  // Fold back after the user selects a page.
+  const collapseAfterNav = () => {
+    if (!isMobile) setOpen(false);
+  };
+
   return (
     <Sidebar
       collapsible="icon"
       className="transition-all duration-300 ease-in-out"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
@@ -184,7 +198,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => (
-                  <SidebarNavItem key={item.title} item={item} currentPath={location.pathname} />
+                  <SidebarNavItem key={item.title} item={item} currentPath={location.pathname} onNavigate={collapseAfterNav} />
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -210,9 +224,11 @@ export function AppSidebar() {
 function SidebarNavItem({
   item,
   currentPath,
+  onNavigate,
 }: {
   item: NavItem;
   currentPath: string;
+  onNavigate?: () => void;
 }) {
   const hasChildren = item.children && item.children.length > 0;
   const isChildActive = hasChildren && item.children!.some((c) => currentPath === c.url);
@@ -226,7 +242,7 @@ function SidebarNavItem({
           isActive={isActive}
           tooltip={item.title}
         >
-          <Link to={item.url!}>
+          <Link to={item.url!} onClick={onNavigate}>
             <item.icon />
             <span>{item.title}</span>
           </Link>
@@ -254,7 +270,7 @@ function SidebarNavItem({
             {item.children!.map((subItem) => (
               <SidebarMenuSubItem key={subItem.title}>
                 <SidebarMenuSubButton asChild isActive={currentPath === subItem.url}>
-                  <Link to={subItem.url}>
+                  <Link to={subItem.url} onClick={onNavigate}>
                     <span>{subItem.title}</span>
                   </Link>
                 </SidebarMenuSubButton>
