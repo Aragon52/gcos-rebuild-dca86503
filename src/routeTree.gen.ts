@@ -14,6 +14,9 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as ReturnsRefundsRouteImport } from './routes/returns-refunds'
+import { Route as ShippingPolicyRouteImport } from './routes/shipping-policy'
+import { Route as VerificationComplianceRouteImport } from './routes/verification-compliance'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminSplatRouteImport } from './routes/admin.$'
 import { Route as AdminAdminsRouteImport } from './routes/admin.admins'
@@ -102,6 +105,21 @@ const CategoriesRoute = CategoriesRouteImport.update({
 const OrdersRoute = OrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReturnsRefundsRoute = ReturnsRefundsRouteImport.update({
+  id: '/returns-refunds',
+  path: '/returns-refunds',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShippingPolicyRoute = ShippingPolicyRouteImport.update({
+  id: '/shipping-policy',
+  path: '/shipping-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerificationComplianceRoute = VerificationComplianceRouteImport.update({
+  id: '/verification-compliance',
+  path: '/verification-compliance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -438,6 +456,9 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRouteWithChildren
   '/categories': typeof CategoriesRouteWithChildren
   '/orders': typeof OrdersRoute
+  '/returns-refunds': typeof ReturnsRefundsRoute
+  '/shipping-policy': typeof ShippingPolicyRoute
+  '/verification-compliance': typeof VerificationComplianceRoute
   '/admin/$': typeof AdminSplatRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/alerts': typeof AdminAlertsRoute
@@ -509,6 +530,9 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRouteWithChildren
   '/categories': typeof CategoriesRouteWithChildren
   '/orders': typeof OrdersRoute
+  '/returns-refunds': typeof ReturnsRefundsRoute
+  '/shipping-policy': typeof ShippingPolicyRoute
+  '/verification-compliance': typeof VerificationComplianceRoute
   '/admin/$': typeof AdminSplatRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/alerts': typeof AdminAlertsRoute
@@ -581,6 +605,9 @@ export interface FileRoutesById {
   '/cart': typeof CartRouteWithChildren
   '/categories': typeof CategoriesRouteWithChildren
   '/orders': typeof OrdersRoute
+  '/returns-refunds': typeof ReturnsRefundsRoute
+  '/shipping-policy': typeof ShippingPolicyRoute
+  '/verification-compliance': typeof VerificationComplianceRoute
   '/admin/$': typeof AdminSplatRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/alerts': typeof AdminAlertsRoute
@@ -654,6 +681,9 @@ export interface FileRouteTypes {
     | '/cart'
     | '/categories'
     | '/orders'
+    | '/returns-refunds'
+    | '/shipping-policy'
+    | '/verification-compliance'
     | '/admin/$'
     | '/admin/admins'
     | '/admin/alerts'
@@ -725,6 +755,9 @@ export interface FileRouteTypes {
     | '/cart'
     | '/categories'
     | '/orders'
+    | '/returns-refunds'
+    | '/shipping-policy'
+    | '/verification-compliance'
     | '/admin/$'
     | '/admin/admins'
     | '/admin/alerts'
@@ -796,6 +829,9 @@ export interface FileRouteTypes {
     | '/cart'
     | '/categories'
     | '/orders'
+    | '/returns-refunds'
+    | '/shipping-policy'
+    | '/verification-compliance'
     | '/admin/$'
     | '/admin/admins'
     | '/admin/alerts'
@@ -868,6 +904,9 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRouteWithChildren
   CategoriesRoute: typeof CategoriesRouteWithChildren
   OrdersRoute: typeof OrdersRoute
+  ReturnsRefundsRoute: typeof ReturnsRefundsRoute
+  ShippingPolicyRoute: typeof ShippingPolicyRoute
+  VerificationComplianceRoute: typeof VerificationComplianceRoute
   AdminSplatRoute: typeof AdminSplatRoute
   AdminAdminsRoute: typeof AdminAdminsRoute
   AdminAlertsRoute: typeof AdminAlertsRoute
@@ -965,6 +1004,27 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/orders'
       preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/returns-refunds': {
+      id: '/returns-refunds'
+      path: '/returns-refunds'
+      fullPath: '/returns-refunds'
+      preLoaderRoute: typeof ReturnsRefundsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shipping-policy': {
+      id: '/shipping-policy'
+      path: '/shipping-policy'
+      fullPath: '/shipping-policy'
+      preLoaderRoute: typeof ShippingPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verification-compliance': {
+      id: '/verification-compliance'
+      path: '/verification-compliance'
+      fullPath: '/verification-compliance'
+      preLoaderRoute: typeof VerificationComplianceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -1460,6 +1520,9 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRouteWithChildren,
   CategoriesRoute: CategoriesRouteWithChildren,
   OrdersRoute: OrdersRoute,
+  ReturnsRefundsRoute: ReturnsRefundsRoute,
+  ShippingPolicyRoute: ShippingPolicyRoute,
+  VerificationComplianceRoute: VerificationComplianceRoute,
   AdminSplatRoute: AdminSplatRoute,
   AdminAdminsRoute: AdminAdminsRoute,
   AdminAlertsRoute: AdminAlertsRoute,
