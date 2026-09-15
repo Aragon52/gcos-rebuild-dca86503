@@ -134,3 +134,72 @@ Path-based access still works on the main domain (`globalcart-onlineshop.com/adm
 - **404s on admin/reseller paths** — make sure the `/* → /.netlify/functions-internal/server` redirect is active.
 - **Build fails** — confirm Node 22 is selected and `NITRO_PRESET=netlify` is set.
 - **Supabase auth errors** — double-check `VITE_SUPABASE_PUBLISHABLE_KEY` matches the anon key exactly.
+
+---
+
+## 8. Testing subdomain routing before connecting your production domain
+
+Netlify deploy previews (`deploy-preview-123--site.netlify.app`) do **not** support custom `admin.` / `reseller.` subdomains, so use one of these approaches instead.
+
+### Option A — Staging subdomains of your own domain (recommended)
+
+If you already control `globalcart-onlineshop.com`, create a staging prefix first. This tests Netlify's real subdomain handling without touching the apex domain.
+
+| Portal | Test address |
+|---|---|
+| Main shop | `staging.globalcart-onlineshop.com` |
+| Admin portal | `admin.staging.globalcart-onlineshop.com` |
+| Reseller portal | `reseller.staging.globalcart-onlineshop.com` |
+
+DNS records at your registrar:
+
+| Type | Name | Value |
+|---|---|---|
+| A | `staging` | Your Netlify apex IP (from the site dashboard) |
+| CNAME | `admin.staging` | `your-site-name.netlify.app` |
+| CNAME | `reseller.staging` | `your-site-name.netlify.app` |
+
+In Netlify, add these three as **domain aliases** on the same site. Once DNS propagates, visiting `admin.staging.globalcart-onlineshop.com/orders` should open the admin orders page at its root.
+
+### Option B — A separate cheap/test domain
+
+Buy any inexpensive domain and point these records at Netlify:
+
+| Type | Name | Value |
+|---|---|---|
+| A | `@` | Netlify apex IP |
+| CNAME | `www` | `your-site-name.netlify.app` |
+| CNAME | `admin` | `your-site-name.netlify.app` |
+| CNAME | `reseller` | `your-site-name.netlify.app` |
+
+Add all four as domain aliases. This is the closest possible test to your final production setup.
+
+### Option C — Local `/etc/hosts` test (free, but not Netlify infrastructure)
+
+To verify the routing logic locally without changing DNS, edit your hosts file:
+
+- **macOS / Linux**: `/etc/hosts`
+- **Windows**: `C:\Windows\System32\drivers\etc\hosts`
+
+Add:
+
+```text
+127.0.0.1 globalcart-onlineshop.local
+127.0.0.1 admin.globalcart-onlineshop.local
+127.0.0.1 reseller.globalcart-onlineshop.local
+```
+
+Then run the local dev server:
+
+```bash
+bun dev
+```
+
+Visit:
+
+- `http://globalcart-onlineshop.local:8080` — main shop
+- `http://admin.globalcart-onlineshop.local:8080` — admin portal
+- `http://reseller.globalcart-onlineshop.local:8080` — reseller portal
+
+This proves the app code rewrites subdomains to `/admin/*` and `/reseller/*` correctly, but it does not test Netlify's CDN or SSL.
+
