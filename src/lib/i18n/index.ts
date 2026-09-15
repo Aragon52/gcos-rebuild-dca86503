@@ -111,12 +111,21 @@ const resources: Record<string, { translation: Record<string, unknown> }> = {
   sr: { translation: sr },
 };
 
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
+const isBrowser = typeof window !== "undefined";
+
+if (!i18n.isInitialized) {
+  if (isBrowser) {
+    i18n.use(LanguageDetector);
+  }
+  i18n.use(initReactI18next).init({
     resources,
+    lng: isBrowser ? undefined : "en",
     fallbackLng: "en",
+    supportedLngs: Object.keys(resources),
+    nonExplicitSupportedLngs: true,
+    load: "languageOnly",
+    
+    react: { useSuspense: false },
     detection: {
       order: ["localStorage", "navigator"],
       lookupLocalStorage: "reseller_language",
@@ -126,6 +135,7 @@ i18n
       escapeValue: false,
     },
   });
+}
 
 // Handle RTL direction
 i18n.on('languageChanged', (lng) => {

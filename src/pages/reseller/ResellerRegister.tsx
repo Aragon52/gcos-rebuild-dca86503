@@ -13,7 +13,9 @@ export default function ResellerRegister() {
   const { register } = useReseller();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const searchParams = useState(() => new URLSearchParams(window.location.search))[0];
+  const [searchParams] = useState(
+    () => new URLSearchParams(typeof window === "undefined" ? "" : window.location.search),
+  );
   const [form, setForm] = useState({ firstName: "", lastName: "", emailOrPhone: "", password: "" });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

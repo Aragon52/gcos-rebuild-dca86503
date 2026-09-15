@@ -12,7 +12,8 @@ import { ThemeProvider } from "next-themes";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import "@/lib/i18n";
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/lib/i18n";
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -146,31 +147,33 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <TooltipProvider>
-            <ProductsProvider>
-              <ProductSyncProvider>
-                <CartProvider>
-                  <WishlistProvider>
-                    <ResellerProvider>
-                      <SeasonalThemeProvider>
-                        <CustomerAuthProvider>
-                          <AdminAuthProvider>
-                            <Toaster />
-                            <Sonner />
-                            <Outlet />
-                          </AdminAuthProvider>
-                        </CustomerAuthProvider>
-                      </SeasonalThemeProvider>
-                    </ResellerProvider>
-                  </WishlistProvider>
-                </CartProvider>
-              </ProductSyncProvider>
-            </ProductsProvider>
-          </TooltipProvider>
-        </ThemeProvider>
-      </ErrorBoundary>
+      <I18nextProvider i18n={i18n}>
+        <ErrorBoundary>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <TooltipProvider>
+              <ProductsProvider>
+                <ProductSyncProvider>
+                  <CartProvider>
+                    <WishlistProvider>
+                      <ResellerProvider>
+                        <SeasonalThemeProvider>
+                          <CustomerAuthProvider>
+                            <AdminAuthProvider>
+                              <Toaster />
+                              <Sonner />
+                              <Outlet />
+                            </AdminAuthProvider>
+                          </CustomerAuthProvider>
+                        </SeasonalThemeProvider>
+                      </ResellerProvider>
+                    </WishlistProvider>
+                  </CartProvider>
+                </ProductSyncProvider>
+              </ProductsProvider>
+            </TooltipProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
+      </I18nextProvider>
     </QueryClientProvider>
   );
 }
