@@ -147,7 +147,7 @@ export function AppSidebar() {
   const location = useLocation();
   const { session } = useAdminAuth();
   const role = session?.role || "User";
-  const { setOpen, open, isMobile } = useSidebar();
+  const { open } = useSidebar();
 
   const navGroups = useMemo(() => {
     const transformed = transformNavGroups(canonicalNavGroups);
@@ -157,8 +157,6 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      onMouseEnter={() => !isMobile && setOpen(true)}
-      onMouseLeave={() => !isMobile && setOpen(false)}
       className="transition-all duration-300 ease-in-out"
     >
       <SidebarHeader className="border-b border-sidebar-border p-4">

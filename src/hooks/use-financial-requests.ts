@@ -151,7 +151,10 @@ export function useFinancialMutations() {
     mutationFn: async ({ id, status, remark }: { id: string; status: string; remark?: string }) => {
       const { error } = await supabase
         .from("withdrawal_requests")
-        .update({ status })
+        .update({
+          status,
+          ...(remark !== undefined ? { remark: remark.trim() || null } : {}),
+        })
         .eq("id", id);
       if (error) throw error;
     },

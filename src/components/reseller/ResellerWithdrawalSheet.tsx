@@ -26,6 +26,7 @@ interface WithdrawalRecord {
   amount: number;
   status: "pending" | "approved" | "rejected" | "completed" | "failed";
   date: string;
+  remark?: string;
 }
 
 export default function ResellerWithdrawalSheet({ open, onOpenChange }: ResellerWithdrawalSheetProps) {
@@ -62,6 +63,7 @@ export default function ResellerWithdrawalSheet({ open, onOpenChange }: Reseller
         amount: Number(row.amount),
         status: row.status.toLowerCase() as "pending" | "approved" | "rejected" | "completed" | "failed",
         date: row.createdAt ? row.createdAt.split('T')[0] : "-",
+        remark: row.remark || row.rejection_remark || undefined,
         createdAt: row.createdAt
       }));
       
@@ -76,7 +78,7 @@ export default function ResellerWithdrawalSheet({ open, onOpenChange }: Reseller
         event: '*', 
         schema: 'public', 
         table: 'withdrawal_requests',
-        filter: `reseller_doc_id=eq.${reseller.id}`
+        filter: `resellerDocId=eq.${reseller.id}`
       }, () => {
         fetchHistory();
       })
@@ -223,9 +225,14 @@ export default function ResellerWithdrawalSheet({ open, onOpenChange }: Reseller
                         <div>
                           <p className="text-sm font-semibold text-foreground">${record.amount.toFixed(2)}</p>
                           <p className="text-[11px] text-muted-foreground">{record.date}</p>
+                          {record.status === "rejected" && record.remark && (
+                            <p className="mt-1 max-w-[220px] text-[11px] text-destructive">
+                              Reason: {record.remark}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${config.className}`}>
+                      <span className={`shrink-0 text-xs font-medium px-2 py-1 rounded-full ${config.className}`}>
                         {config.label}
                       </span>
                     </div>
