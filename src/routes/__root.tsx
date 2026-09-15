@@ -27,6 +27,7 @@ import { ProductsProvider } from "@/lib/products-context";
 import { ProductSyncProvider } from "@/context/ProductSyncContext";
 import { SeasonalThemeProvider } from "@/lib/seasonal-theme-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { initPWAInstall } from "@/lib/pwa-install";
 
 function NotFoundComponent() {
   return (
@@ -92,23 +93,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#009000" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "GCOS" },
       { title: "GCOS | Global online marketplace" },
       {
         name: "description",
         content:
-          "Shop products from a global online marketplace, discover reseller stores, and find useful support and shopping policies.",
+          "Shop premium products from verified sellers worldwide. Discover reseller stores, enjoy secure checkout, and get world-class customer support.",
       },
+      { name: "keywords", content: "online marketplace, global shopping, ecommerce, products, reseller portal" },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "GCOS | Global online marketplace" },
       {
         property: "og:description",
         content:
-          "Shop products from a global online marketplace, discover reseller stores, and find useful support and shopping policies.",
+          "Shop premium products from verified sellers worldwide. Discover reseller stores, enjoy secure checkout, and get world-class customer support.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://globalcart-onlineshop.com/" },
+      { property: "og:image", content: "https://globalcart-onlineshop.com/brand/og-customer.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "GCOS Global online marketplace" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://globalcart-onlineshop.com/brand/og-customer.png" },
     ],
     links: [
       {
@@ -146,6 +158,15 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    initPWAInstall();
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
+      navigator.serviceWorker.register('/sw.js').catch((error) => {
+        console.error('[v0] Service worker registration failed:', error);
+      });
+    }
+  }, []);
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -153,7 +174,7 @@ function RootComponent() {
         "@type": "Organization",
         name: "GCOS",
         url: "https://globalcart-onlineshop.com/",
-        logo: "https://globalcart-onlineshop.com/favicon.ico",
+        logo: "https://globalcart-onlineshop.com/brand/logo-header.svg",
         contactPoint: {
           "@type": "ContactPoint",
           url: "https://globalcart-onlineshop.com/contact",
