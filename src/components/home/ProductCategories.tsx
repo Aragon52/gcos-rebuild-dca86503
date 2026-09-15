@@ -31,7 +31,8 @@ export function ProductCategories() {
                     loading="lazy" 
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = `https://picsum.photos/seed/${cat.slug}/200/200`;
+                      const fallback = getCategoryImage(cat.slug);
+                      if (fallback && target.src !== fallback) target.src = fallback;
                     }}
                   />
                 </div>
