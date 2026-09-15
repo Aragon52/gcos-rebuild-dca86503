@@ -11,6 +11,12 @@ export const getRouter = () => {
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
+    // Subdomain portals: admin.* / reseller.* serve the /admin and /reseller
+    // route trees at the root of their own host. See src/lib/portal-host.ts.
+    rewrite: {
+      input: toInternalUrl,
+      output: toExternalUrl,
+    },
     defaultPreloadStaleTime: 0,
     // This project intentionally runs with strictNullChecks off (ported codebase);
     // TanStack Router's types demand it, so cast past the compile-time guard.
