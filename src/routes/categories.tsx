@@ -5,11 +5,13 @@ import Categories from "@/pages/Categories";
 export const Route = createFileRoute("/categories")({
   head: () => ({
     meta: [
-      { title: "Categories — GCOS" },
-      { name: "description", content: "Browse all product categories on GCOS." },
-      { property: "og:title", content: "Categories — GCOS" },
-      { property: "og:description", content: "Browse all product categories on GCOS." },
+      { title: "Shop product categories | GCOS" },
+      { name: "description", content: "Browse product categories and discover items available through the GCOS global marketplace." },
+      { name: "robots", content: "index, follow" },
+      { property: "og:title", content: "Shop product categories | GCOS" },
+      { property: "og:description", content: "Browse product categories and discover items available through the GCOS global marketplace." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://globalcart-onlineshop.com/categories" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),

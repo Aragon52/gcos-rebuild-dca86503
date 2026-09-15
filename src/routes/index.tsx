@@ -5,11 +5,13 @@ import HomePage from "@/pages/Index";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Home — GCOS" },
-      { name: "description", content: "Shop the GCOS marketplace — products, deals and reseller stores." },
-      { property: "og:title", content: "Home — GCOS" },
-      { property: "og:description", content: "Shop the GCOS marketplace — products, deals and reseller stores." },
+      { title: "Shop online | GCOS global marketplace" },
+      { name: "description", content: "Explore products, categories, deals, and independent reseller stores on GCOS, a global online marketplace." },
+      { name: "robots", content: "index, follow" },
+      { property: "og:title", content: "Shop online | GCOS global marketplace" },
+      { property: "og:description", content: "Explore products, categories, deals, and independent reseller stores on GCOS, a global online marketplace." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://globalcart-onlineshop.com/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),

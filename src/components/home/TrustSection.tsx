@@ -6,22 +6,22 @@ export function TrustSection() {
     {
       icon: <ShieldCheck className="h-8 w-8 text-primary" />,
       title: "Secure Shopping",
-      description: "Your data is protected by industry-leading SSL encryption."
+      description: "Review our privacy policy and account controls before you shop."
     },
     {
       icon: <Truck className="h-8 w-8 text-primary" />,
       title: "Global Shipping",
-      description: "Reliable delivery to over 100 countries worldwide."
+      description: "Delivery options and availability are shown for each order."
     },
     {
       icon: <Headset className="h-8 w-8 text-primary" />,
       title: "24/7 Support",
-      description: "Dedicated customer service team ready to help anytime."
+      description: "Find help and contact options through our support pages."
     },
     {
       icon: <CreditCard className="h-8 w-8 text-primary" />,
       title: "Safe Payments",
-      description: "We support all major credit cards and secure gateways."
+      description: "Available payment methods are shown securely at checkout."
     }
   ];
 
