@@ -93,19 +93,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GCOS — Global Commerce Online Store" },
+      { title: "GCOS | Global online marketplace" },
       {
         name: "description",
         content:
-          "GCOS marketplace — shop products, become a reseller, and manage your online store.",
+          "Shop products from a global online marketplace, discover reseller stores, and find useful support and shopping policies.",
       },
-      { property: "og:title", content: "GCOS — Global Commerce Online Store" },
+      { name: "robots", content: "index, follow" },
+      { property: "og:title", content: "GCOS | Global online marketplace" },
       {
         property: "og:description",
         content:
-          "GCOS marketplace — shop products, become a reseller, and manage your online store.",
+          "Shop products from a global online marketplace, discover reseller stores, and find useful support and shopping policies.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://globalcart-onlineshop.com/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
@@ -144,9 +146,32 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "GCOS",
+        url: "https://globalcart-onlineshop.com/",
+        logo: "https://globalcart-onlineshop.com/favicon.ico",
+        contactPoint: {
+          "@type": "ContactPoint",
+          url: "https://globalcart-onlineshop.com/contact",
+          contactType: "customer support",
+        },
+      },
+      {
+        "@type": "WebSite",
+        name: "GCOS",
+        url: "https://globalcart-onlineshop.com/",
+        description: "Global online marketplace for products, categories, and reseller stores.",
+      },
+    ],
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <I18nextProvider i18n={i18n}>
         <ErrorBoundary>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>

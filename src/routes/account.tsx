@@ -5,6 +5,7 @@ import Account from "@/pages/Account";
 export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex, nofollow" },
       { title: "My account — GCOS" },
       { name: "description", content: "Manage your GCOS account." },
       { property: "og:title", content: "My account — GCOS" },

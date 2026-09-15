@@ -5,6 +5,7 @@ import Cart from "@/pages/Cart";
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex, nofollow" },
       { title: "Cart — GCOS" },
       { name: "description", content: "Your shopping cart on GCOS." },
       { property: "og:title", content: "Cart — GCOS" },
