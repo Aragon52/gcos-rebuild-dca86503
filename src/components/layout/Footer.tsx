@@ -39,6 +39,15 @@ export default function Footer() {
     ] : [])
   ];
 
+  const documentationLinks = [
+    { label: 'Shipping Policy', href: '/shipping-policy' },
+    { label: 'Return & Refund Policy', href: '/returns-refunds' },
+    { label: 'Verification & Compliance', href: '/verification-compliance' },
+    { label: t('footer.termsOfService'), href: '/terms' },
+    { label: t('footer.privacyPolicy'), href: '/privacy' },
+    { label: 'Contact Us', href: '/contact' },
+  ];
+
   useEffect(() => {
     const fetch = async () => {
       try {
@@ -176,23 +185,36 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Quick Links — dynamically from DB */}
+            {/* Quick Links — first-party documentation plus configured external content */}
             <div>
               <h4 className="mb-6 text-sm font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--footer-heading))' }}>{t('footer.quickLinks')}</h4>
               <ul className="space-y-3">
-                {contentLinks.map((link) => (
+                {documentationLinks.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      to={link.href}
                       className="text-sm hover:text-white transition-colors"
                       style={{ color: 'hsl(var(--footer-text))' }}
                     >
                       {link.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
+                {contentLinks
+                  .filter((link) => !documentationLinks.some((doc) => doc.label === link.label))
+                  .map((link) => (
+                    <li key={link.label}>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm hover:text-white transition-colors"
+                        style={{ color: 'hsl(var(--footer-text))' }}
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
               </ul>
               <div className="mt-8">
                 <h4 className="mb-4 text-sm font-bold uppercase tracking-wider" style={{ color: 'hsl(var(--footer-heading))' }}>{t('reseller.partnership')}</h4>
