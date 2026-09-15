@@ -135,8 +135,14 @@ const Sidebar = React.forwardRef<
     side?: "left" | "right";
     variant?: "sidebar" | "floating" | "inset";
     collapsible?: "offcanvas" | "icon" | "none";
+    /**
+     * When true, the expanded panel floats above content as an overlay instead of
+     * pushing/reflowing the page. The icon rail keeps reserving its width so the
+     * layout never shifts while hovering to expand.
+     */
+    hoverExpand?: boolean;
   }
->(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
+>(({ side = "left", variant = "sidebar", collapsible = "offcanvas", hoverExpand = false, className, children, ...props }, ref) => {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
   if (collapsible === "none") {
@@ -192,6 +198,12 @@ const Sidebar = React.forwardRef<
           variant === "floating" || variant === "inset"
             ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
             : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]",
+          // Overlay mode: keep the flow width locked to the icon rail so expanding
+          // on hover never pushes or reflows the page content.
+          hoverExpand &&
+            (variant === "floating" || variant === "inset"
+              ? "!w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
+              : "!w-[--sidebar-width-icon]"),
         )}
       />
       <div
@@ -204,6 +216,9 @@ const Sidebar = React.forwardRef<
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
             : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
+          // Overlay mode: lift the expanded panel above content with a shadow so it
+          // reads as a floating flyout rather than covering the dashboard.
+          hoverExpand && "z-20 group-data-[state=expanded]:shadow-2xl",
           className,
         )}
         {...props}
