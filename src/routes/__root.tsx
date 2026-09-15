@@ -12,7 +12,8 @@ import { ThemeProvider } from "next-themes";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import "@/lib/i18n";
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/lib/i18n";
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
