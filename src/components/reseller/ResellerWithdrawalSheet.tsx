@@ -37,10 +37,12 @@ export default function ResellerWithdrawalSheet({ open, onOpenChange }: Reseller
   const [history, setHistory] = useState<WithdrawalRecord[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  const statusConfig = {
+  const statusConfig: Record<WithdrawalRecord["status"], { icon: typeof Clock; label: string; className: string }> = {
     pending: { icon: Clock, label: t("reseller.pending"), className: "text-yellow-500 bg-yellow-500/10" },
     approved: { icon: CheckCircle2, label: t("reseller.approved"), className: "text-emerald-500 bg-emerald-500/10" },
     rejected: { icon: XCircle, label: t("reseller.rejected"), className: "text-destructive bg-destructive/10" },
+    completed: { icon: CheckCircle2, label: t("reseller.approved"), className: "text-emerald-500 bg-emerald-500/10" },
+    failed: { icon: XCircle, label: t("reseller.rejected"), className: "text-destructive bg-destructive/10" },
   };
 
   useEffect(() => {
@@ -58,16 +60,24 @@ export default function ResellerWithdrawalSheet({ open, onOpenChange }: Reseller
         return;
       }
 
-      const records = (data || []).map(row => ({
-        id: row.id,
-        amount: Number(row.amount),
-        status: row.status.toLowerCase() as "pending" | "approved" | "rejected" | "completed" | "failed",
-        date: row.createdAt ? row.createdAt.split('T')[0] : "-",
-        remark: row.remark || row.rejection_remark || undefined,
-        createdAt: row.createdAt
-      }));
-      
-      setHistory(records as WithdrawalRecord[]);
+      const records: WithdrawalRecord[] = (data || []).map(row => {
+        let remark: string | undefined;
+        try {
+          const info = row.account_info ? JSON.parse(row.account_info) : null;
+          remark = info?.rejectionRemark || undefined;
+        } catch {
+          remark = undefined;
+        }
+        return {
+          id: row.id,
+          amount: Number(row.amount),
+          status: (row.status?.toLowerCase() || "pending") as WithdrawalRecord["status"],
+          date: row.createdAt ? row.createdAt.split('T')[0] : "-",
+          remark,
+        };
+      });
+
+      setHistory(records);
     };
 
     fetchHistory();
