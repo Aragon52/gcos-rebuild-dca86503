@@ -11,38 +11,47 @@ export interface ProductsContextType {
 export const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
 const CATEGORY_DEFAULT_IMAGES: Record<string, string> = {
-  electronics: "https://picsum.photos/seed/electronics/200/200",
-  accessories: "https://picsum.photos/seed/accessories/200/200",
-  "automotive-parts-&-accessories": "https://picsum.photos/seed/car/200/200",
-  fragrances: "https://picsum.photos/seed/perfume/200/200",
-  "bags-&-backpacks": "https://picsum.photos/seed/bag/200/200",
-  fashion: "https://picsum.photos/seed/fashion/200/200",
-  "home-living": "https://picsum.photos/seed/home/200/200",
-  "beauty-health": "https://picsum.photos/seed/beauty/200/200",
-  "sports-outdoors": "https://picsum.photos/seed/sports/200/200",
-  "books-stationery": "https://picsum.photos/seed/books/200/200",
-  clothing: "https://picsum.photos/seed/clothing/200/200",
-  shoes: "https://picsum.photos/seed/shoes/200/200",
-  watches: "https://picsum.photos/seed/watch/200/200",
-  jewelry: "https://picsum.photos/seed/jewelry/200/200",
+  "gc-special": "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=200&h=200",
+  "men's-fashion": "https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=200&h=200",
+  "mens-fashion": "https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=200&h=200",
+  "women's-fashion": "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=200&h=200",
+  "womens-fashion": "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=200&h=200",
+  "home-&-kitchen": "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=200&h=200",
+  "home-kitchen": "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=200&h=200",
+  "beauty-&-personal-care": "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=200&h=200",
+  "pet-supplies": "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=200&h=200",
+  "electronics-&-gadgets": "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=200&h=200",
+  "toys-&-games": "https://images.unsplash.com/photo-1558060370-d644479cb6f7?auto=format&fit=crop&w=200&h=200",
+  "sports-&-outdoors": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=200&h=200",
+  "bags-&-accessories": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=200&h=200",
+  watches: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&w=200&h=200",
+  "health-&-wellness": "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=200&h=200",
+  shoes: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=200&h=200",
 };
 
+const slugify = (s: string) => s.toLowerCase().replace(/\s+/g, "-");
+
 export function getCategoryImage(slug: string, providedImage?: string, products?: Product[], categoryName?: string): string {
-  if (providedImage && providedImage.trim() !== "" && !providedImage.includes("placeholder.svg")) {
+  if (providedImage && providedImage.trim() !== "" && !providedImage.includes("placeholder.svg") && providedImage.startsWith("http")) {
     return providedImage;
   }
 
-  // Try to find a product image from the inventory for this category
+  // Prefer the curated, label-accurate category picture
+  const curated = CATEGORY_DEFAULT_IMAGES[slug] || CATEGORY_DEFAULT_IMAGES[slug.replace(/&-/g, "")];
+  if (curated) return curated;
+
+  // Otherwise use a product image from the inventory for this category (slug-normalized match)
   if (products && categoryName) {
-    const productWithImage = products.find(p => 
-      p.category && p.category.toLowerCase() === categoryName.toLowerCase() && p.image
+    const catSlug = slugify(categoryName);
+    const productWithImage = products.find(p =>
+      p.category && slugify(p.category) === catSlug && p.image && p.image.startsWith("http")
     );
     if (productWithImage) {
       return productWithImage.image;
     }
   }
 
-  return CATEGORY_DEFAULT_IMAGES[slug] || `https://picsum.photos/seed/${slug}/200/200`;
+  return "";
 }
 
 export function mapCategories(dbCategories: Record<string, unknown>[], products?: Product[]): Category[] {

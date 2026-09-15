@@ -1,5 +1,5 @@
 import { Link } from "@/lib/router-compat";
-import { useProducts } from "@/lib/products-context-hooks";
+import { useProducts, getCategoryImage } from "@/lib/products-context-hooks";
 import { useTranslation } from "react-i18next";
 import { CategorySkeleton } from "@/components/products/ProductCardSkeleton";
 
@@ -31,7 +31,8 @@ export function ProductCategories() {
                     loading="lazy" 
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = `https://picsum.photos/seed/${cat.slug}/200/200`;
+                      const fallback = getCategoryImage(cat.slug);
+                      if (fallback && target.src !== fallback) target.src = fallback;
                     }}
                   />
                 </div>
