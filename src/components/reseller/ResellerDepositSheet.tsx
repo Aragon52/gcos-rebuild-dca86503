@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { parseSettingValue, type DepositConfig } from "@/lib/system-settings";
 import { useReseller } from "@/lib/reseller-context-hooks";
 import { useTranslation } from "react-i18next";
 import {
