@@ -346,6 +346,13 @@ export default function ARSWithdrawalPage() {
                 )}
               </div>
 
+              {viewRequest.status === "Rejected" && viewRequest.remark && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
+                  <div className="font-semibold text-destructive mb-1">Rejection remark</div>
+                  <p className="text-muted-foreground">{viewRequest.remark}</p>
+                </div>
+              )}
+
               <div className="space-y-2 text-xs text-muted-foreground">
                 <div className="flex justify-between">
                   <span>Reseller ID:</span>

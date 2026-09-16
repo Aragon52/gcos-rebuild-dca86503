@@ -126,7 +126,7 @@ export function useWithdrawalRequests() {
           return {
             ...item,
             bankInfo: parsed,
-            remark: (parsed?.rejectionRemark as string | undefined) ?? item.remark,
+            remark: item.remark ?? (parsed?.rejectionRemark as string | undefined),
             createdAt: item.createdAt || item.created_at,
           };
         }) as WithdrawalRequest[];
@@ -144,9 +144,12 @@ export function useFinancialMutations() {
 
   const updateDepositStatus = useMutation({
     mutationFn: async ({ id, status, remark }: { id: string; status: string; remark?: string }) => {
+      const updates: Record<string, unknown> = { status };
+      if (remark !== undefined) updates.remark = remark.trim() || null;
+
       const { error } = await supabase
         .from("deposit_requests")
-        .update({ status })
+        .update(updates)
         .eq("id", id);
       if (error) throw error;
     },
@@ -160,28 +163,9 @@ export function useFinancialMutations() {
     mutationFn: async ({ id, status, remark }: { id: string; status: string; remark?: string }) => {
       const updates: Record<string, unknown> = { status };
 
-      // The withdrawal_requests table has no dedicated remark column, so the
-      // rejection reason is persisted inside the existing account_info JSON
-      // blob. This keeps the admin -> reseller remark flow working without a
-      // schema migration.
-      if (remark !== undefined) {
-        const { data: existing } = await supabase
-          .from("withdrawal_requests")
-          .select("account_info")
-          .eq("id", id)
-          .single();
-
-        let info: Record<string, unknown> = {};
-        if (existing?.account_info) {
-          try {
-            info = JSON.parse(existing.account_info) ?? {};
-          } catch {
-            info = {};
-          }
-        }
-        info.rejectionRemark = remark.trim() || null;
-        updates.account_info = JSON.stringify(info);
-      }
+      // The rejection reason is stored in a dedicated remark column so the
+      // reseller portal can display it alongside the request.
+      if (remark !== undefined) updates.remark = remark.trim() || null;
 
       const { error } = await supabase
         .from("withdrawal_requests")

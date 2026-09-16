@@ -61,12 +61,14 @@ export default function ResellerWithdrawalSheet({ open, onOpenChange }: Reseller
       }
 
       const records: WithdrawalRecord[] = (data || []).map(row => {
-        let remark: string | undefined;
-        try {
-          const info = row.account_info ? JSON.parse(row.account_info) : null;
-          remark = info?.rejectionRemark || undefined;
-        } catch {
-          remark = undefined;
+        let remark: string | undefined = row.remark || undefined;
+        if (!remark) {
+          try {
+            const info = row.account_info ? JSON.parse(row.account_info) : null;
+            remark = info?.rejectionRemark || undefined;
+          } catch {
+            remark = undefined;
+          }
         }
         return {
           id: row.id,
