@@ -20,7 +20,20 @@ interface Transaction {
   amount: number;
   status: TransactionStatus;
   date: string;
+  remark?: string;
 }
+
+// Legacy rows stored the rejection reason inside the account_info JSON blob.
+const readRemark = (row: { remark?: string | null; account_info?: string | null }): string | undefined => {
+  if (row.remark) return row.remark;
+  try {
+    const info = row.account_info ? (JSON.parse(row.account_info) as { rejectionRemark?: string }) : null;
+    return info?.rejectionRemark || undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 
 type FilterType = "all" | "deposit" | "withdrawal";
 
@@ -56,7 +69,8 @@ export default function FinancialStatementsSheet() {
           type: "deposit",
           amount: Number(data.amount),
           status: (data.status?.toLowerCase() || "pending") as TransactionStatus,
-          date: data.createdAt ? data.createdAt.split('T')[0] : 'N/A'
+          date: data.createdAt ? data.createdAt.split('T')[0] : 'N/A',
+          remark: readRemark(data)
         }));
 
         const withdrawals: Transaction[] = (withdrawalSnap || []).map(data => ({
@@ -64,7 +78,8 @@ export default function FinancialStatementsSheet() {
           type: "withdrawal",
           amount: Number(data.amount),
           status: (data.status?.toLowerCase() || "pending") as TransactionStatus,
-          date: data.createdAt ? data.createdAt.split('T')[0] : 'N/A'
+          date: data.createdAt ? data.createdAt.split('T')[0] : 'N/A',
+          remark: readRemark(data)
         }));
 
         const all = [...deposits, ...withdrawals].sort((a, b) => 
@@ -142,39 +157,47 @@ export default function FinancialStatementsSheet() {
               <p className="text-xs text-muted-foreground text-center py-8">{t("reseller.noTransactionsFound")}</p>
             ) : (
               filtered.map((tx) => {
-                const config = statusConfig[tx.status];
+                const config = statusConfig[tx.status] ?? statusConfig.pending;
                 const StatusIcon = config.icon;
                 const isDeposit = tx.type === "deposit";
+                const showRemark = tx.status === "rejected" && !!tx.remark;
                 return (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between rounded-xl border border-border bg-card p-3"
+                    className="rounded-xl border border-border bg-card p-3"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
-                        isDeposit ? "bg-emerald-500/10" : "bg-orange-500/10"
-                       }`}>
-                        {isDeposit ? (
-                          <ArrowDownToLine className="h-4 w-4 text-emerald-500" />
-                        ) : (
-                          <ArrowUpFromLine className="h-4 w-4 text-orange-500" />
-                        )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
+                          isDeposit ? "bg-emerald-500/10" : "bg-orange-500/10"
+                         }`}>
+                          {isDeposit ? (
+                            <ArrowDownToLine className="h-4 w-4 text-emerald-500" />
+                          ) : (
+                            <ArrowUpFromLine className="h-4 w-4 text-orange-500" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">
+                            {isDeposit ? "+" : "-"}${tx.amount.toFixed(2)}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {isDeposit ? t("reseller.deposit") : t("reseller.withdrawal")} • {tx.date}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">
-                          {isDeposit ? "+" : "-"}${tx.amount.toFixed(2)}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {isDeposit ? t("reseller.deposit") : t("reseller.withdrawal")} • {tx.date}
-                        </p>
+                      <div className="flex items-center gap-1.5">
+                        <StatusIcon className={`h-3.5 w-3.5 ${config.className.split(" ")[0]}`} />
+                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${config.className}`}>
+                          {config.label}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <StatusIcon className={`h-3.5 w-3.5 ${config.className.split(" ")[0]}`} />
-                      <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${config.className}`}>
-                        {config.label}
-                      </span>
-                    </div>
+                    {showRemark && (
+                      <p className="mt-2 rounded-lg bg-destructive/10 px-2.5 py-1.5 text-[11px] text-destructive">
+                        Reason: {tx.remark}
+                      </p>
+                    )}
                   </div>
                 );
               })
