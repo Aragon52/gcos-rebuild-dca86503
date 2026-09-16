@@ -60,6 +60,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { parseImageUrl } from "@/lib/utils";
+import { SourceProductsDialog } from "@/components/admin/SourceProductsDialog";
 
 const productSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -452,6 +453,7 @@ export default function AdminInventoryPage() {
           </div>
           
           <div className="flex items-center gap-2">
+            <SourceProductsDialog />
             <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={handleLoadDummyData} disabled={isLoadingDummyData}>
               {isLoadingDummyData ? <LoadingSpinner size={14} /> : <Download className="h-3.5 w-3.5" />}
               Load Dummy Data
