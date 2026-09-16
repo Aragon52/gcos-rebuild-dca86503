@@ -3,6 +3,7 @@ import { useAdminAccess } from "@/hooks/use-admin-access";
 import { useAdminAuth } from "@/lib/admin-auth-context-hooks";
 import { useUnifiedResellers } from "@/lib/unified-hooks";
 import { supabase } from "@/lib/supabase";
+import { parseSettingValue, serializeSettingValue, type DepositConfig } from "@/lib/system-settings";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
