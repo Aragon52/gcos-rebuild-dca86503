@@ -100,7 +100,7 @@ export function useUnreadCount() {
 
       return [...broadcastIds, ...resellerIds];
     },
-    refetchInterval: 30 * 60 * 1000, 
+    refetchInterval: 60 * 1000, 
   });
 
   useEffect(() => {
