@@ -383,26 +383,14 @@ export default function ARSPaymentInfoPage() {
 
   const handleSave = () => {
     if (!selectedReseller) return;
-    console.log("DEBUG: Saving updates:", {
-      id: selectedReseller.id,
-      updates: {
-        level: editForm.level,
-        balance: editForm.availableBalance,
-        pending_balance: editForm.pendingBalance,
-        total_deposits: editForm.totalDeposits,
-        total_withdrawals: editForm.totalWithdrawals,
-        total_earnings: editForm.totalEarnings,
-        usdtAddress: editForm.usdtAddress,
-        bankInfo: {
-          bankName: editForm.bankName,
-          accountName: editForm.accountName,
-          accountNumber: editForm.accountNumber,
-        }
-      }
-    });
+
+    const balanceDelta = Number(
+      (editForm.availableBalance - selectedReseller.availableBalance).toFixed(2)
+    );
 
     updateResellerMutation.mutate({
       id: selectedReseller.id,
+      balanceDelta,
       updates: {
         level: editForm.level,
         balance: editForm.availableBalance,
