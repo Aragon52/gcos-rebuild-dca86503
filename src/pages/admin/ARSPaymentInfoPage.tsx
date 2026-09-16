@@ -27,6 +27,8 @@ import { useUnifiedResellers } from "@/lib/unified-hooks";
 
 const VIP_LABELS = ["VIP-0", "VIP-1", "VIP-2", "VIP-3", "VIP-4", "VIP-5"];
 
+const MANUAL_DEPOSIT_REMARK = "Direct deposit request via Customer Care Service";
+
 interface ResellerFinancial {
   id: string;
   resellerId: number;
@@ -185,8 +187,7 @@ export default function ARSPaymentInfoPage() {
   });
 
   const updateResellerMutation = useMutation({
-    mutationFn: async (data: { id: string; updates: Record<string, unknown> }) => {
-      console.log("DEBUG: Mutation starting", data);
+    mutationFn: async (data: { id: string; updates: Record<string, unknown>; balanceDelta?: number }) => {
       const profileUpdates: Record<string, unknown> = {};
       const shopUpdates: Record<string, unknown> = {};
 
@@ -247,6 +248,22 @@ export default function ARSPaymentInfoPage() {
         }).eq('id', data.id);
         if (error) throw error;
       }
+
+      // Record a manual balance top-up as an approved deposit for traceability
+      const delta = Number(data.balanceDelta || 0);
+      if (delta > 0) {
+        const { error: depositError } = await supabase.from('deposit_requests').insert({
+          resellerDocId: data.id,
+          amount: Number(delta.toFixed(2)),
+          status: 'Approved',
+          remark: MANUAL_DEPOSIT_REMARK,
+          createdAt: new Date().toISOString(),
+        });
+        if (depositError) {
+          console.error("Failed to record manual deposit:", depositError);
+        }
+      }
+
       
       if (Object.keys(shopUpdates).length > 0) {
         const { error } = await supabase.from('retail_shops').upsert({
@@ -256,9 +273,15 @@ export default function ARSPaymentInfoPage() {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_result, variables) => {
       queryClient.invalidateQueries({ queryKey: ["resellers"] });
-      toast.success("Reseller financial data updated");
+      queryClient.invalidateQueries({ queryKey: ["deposit-requests"] });
+      const delta = Number(variables.balanceDelta || 0);
+      if (delta > 0) {
+        toast.success(`Reseller financial data updated. ${fmt(delta)} recorded as a direct deposit.`);
+      } else {
+        toast.success("Reseller financial data updated");
+      }
       setIsEditing(false);
     },
     onError: (e: unknown) => {
@@ -366,26 +389,14 @@ export default function ARSPaymentInfoPage() {
 
   const handleSave = () => {
     if (!selectedReseller) return;
-    console.log("DEBUG: Saving updates:", {
-      id: selectedReseller.id,
-      updates: {
-        level: editForm.level,
-        balance: editForm.availableBalance,
-        pending_balance: editForm.pendingBalance,
-        total_deposits: editForm.totalDeposits,
-        total_withdrawals: editForm.totalWithdrawals,
-        total_earnings: editForm.totalEarnings,
-        usdtAddress: editForm.usdtAddress,
-        bankInfo: {
-          bankName: editForm.bankName,
-          accountName: editForm.accountName,
-          accountNumber: editForm.accountNumber,
-        }
-      }
-    });
+
+    const balanceDelta = Number(
+      (editForm.availableBalance - selectedReseller.availableBalance).toFixed(2)
+    );
 
     updateResellerMutation.mutate({
       id: selectedReseller.id,
+      balanceDelta,
       updates: {
         level: editForm.level,
         balance: editForm.availableBalance,
