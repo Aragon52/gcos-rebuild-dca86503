@@ -59,15 +59,15 @@ export default function ResellerDepositSheet({ open, onOpenChange }: ResellerDep
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        let configData = null;
+        let configData: DepositConfig | null = null;
 
         if (reseller?.memberOfAdminId) {
           const { data } = await supabase
             .from("system_settings")
             .select("value")
             .eq("key", `deposit_config_${reseller.memberOfAdminId}`)
-            .single();
-          if (data) configData = data.value;
+            .maybeSingle();
+          configData = parseSettingValue<DepositConfig>(data?.value);
         }
 
         if (!configData) {
@@ -75,8 +75,8 @@ export default function ResellerDepositSheet({ open, onOpenChange }: ResellerDep
             .from("system_settings")
             .select("value")
             .eq("key", "deposit_config")
-            .single();
-          if (data) configData = data.value;
+            .maybeSingle();
+          configData = parseSettingValue<DepositConfig>(data?.value);
         }
 
         if (configData) {
