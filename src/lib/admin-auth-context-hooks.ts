@@ -13,6 +13,7 @@ export interface AdminSession {
 export const STAFF_ALLOWED_PATHS = new Set([
   "/admin",
   "/admin/inventory",
+  "/admin/catalog",
   "/admin/orders",
   "/admin/resellers",
   "/admin/customer-service",
