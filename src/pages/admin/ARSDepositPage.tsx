@@ -3,6 +3,7 @@ import { useAdminAccess } from "@/hooks/use-admin-access";
 import { useAdminAuth } from "@/lib/admin-auth-context-hooks";
 import { useUnifiedResellers } from "@/lib/unified-hooks";
 import { supabase } from "@/lib/supabase";
+import { parseSettingValue, serializeSettingValue, type DepositConfig } from "@/lib/system-settings";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -58,26 +59,27 @@ export default function ARSDepositPage() {
       if (!session) return;
       try {
         const configKey = session.role === "Owner" ? "deposit_config" : `deposit_config_${session.accountId || session.uid}`;
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("system_settings")
           .select("value")
           .eq("key", configKey)
-          .single();
-        
-        if (data) {
-          setUsdtAddress(data.value.usdtAddress || "");
-          setQrCodeUrl(data.value.qrCodeUrl || "");
-        } else if (session.role !== "Owner") {
+          .maybeSingle();
+
+        let config = parseSettingValue<DepositConfig>(data?.value);
+
+        if (!config && session.role !== "Owner") {
           // Fallback to global config
           const { data: globalData } = await supabase
             .from("system_settings")
             .select("value")
             .eq("key", "deposit_config")
-            .single();
-          if (globalData) {
-            setUsdtAddress(globalData.value.usdtAddress || "");
-            setQrCodeUrl(globalData.value.qrCodeUrl || "");
-          }
+            .maybeSingle();
+          config = parseSettingValue<DepositConfig>(globalData?.value);
+        }
+
+        if (config) {
+          setUsdtAddress(config.usdtAddress || "");
+          setQrCodeUrl(config.qrCodeUrl || "");
         }
       } catch (error) {
         console.error("Error fetching deposit settings:", error);
@@ -91,21 +93,26 @@ export default function ARSDepositPage() {
     setSavingSettings(true);
     try {
       const configKey = session.role === "Owner" ? "deposit_config" : `deposit_config_${session.accountId || session.uid}`;
-      const { error } = await supabase.from("system_settings").upsert({
-        key: configKey,
-        value: {
-          usdtAddress,
-          qrCodeUrl,
-          updatedAt: new Date().toISOString(),
-          updatedBy: session.role
-        }
-      });
+      // `value` is a text column, so the config object must be serialized.
+      const { error } = await supabase.from("system_settings").upsert(
+        {
+          key: configKey,
+          value: serializeSettingValue({
+            usdtAddress,
+            qrCodeUrl,
+            updatedAt: new Date().toISOString(),
+            updatedBy: session.role,
+          }),
+        },
+        { onConflict: "key" },
+      );
       if (error) throw error;
       toast({ title: "Settings Saved", description: "Deposit configuration updated successfully." });
       setShowSettings(false);
     } catch (error) {
       console.error("Error saving deposit settings:", error);
-      toast({ title: "Error", description: "Failed to save settings.", variant: "destructive" });
+      const message = error instanceof Error ? error.message : "Failed to save settings.";
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setSavingSettings(false);
     }

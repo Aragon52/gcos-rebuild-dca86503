@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { parseSettingValue, type DepositConfig } from "@/lib/system-settings";
 import { useReseller } from "@/lib/reseller-context-hooks";
 import { useTranslation } from "react-i18next";
 import {
@@ -59,15 +60,15 @@ export default function ResellerDepositSheet({ open, onOpenChange }: ResellerDep
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        let configData = null;
+        let configData: DepositConfig | null = null;
 
         if (reseller?.memberOfAdminId) {
           const { data } = await supabase
             .from("system_settings")
             .select("value")
             .eq("key", `deposit_config_${reseller.memberOfAdminId}`)
-            .single();
-          if (data) configData = data.value;
+            .maybeSingle();
+          configData = parseSettingValue<DepositConfig>(data?.value);
         }
 
         if (!configData) {
@@ -75,8 +76,8 @@ export default function ResellerDepositSheet({ open, onOpenChange }: ResellerDep
             .from("system_settings")
             .select("value")
             .eq("key", "deposit_config")
-            .single();
-          if (data) configData = data.value;
+            .maybeSingle();
+          configData = parseSettingValue<DepositConfig>(data?.value);
         }
 
         if (configData) {
