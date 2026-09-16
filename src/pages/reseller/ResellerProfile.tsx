@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useReseller, LEVEL_PROFIT_MAP } from "@/lib/reseller-context-hooks";
 import { Palette, ChevronRight, Wallet, ArrowDownToLine, ArrowUpFromLine, Clock, LogOut, Package, Store } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -11,7 +11,7 @@ const LEVEL_BADGE_MAP: Record<string, number> = {
   "VIP-4": 4,
   "VIP-5": 5,
 };
-import { Link, useNavigate } from "@/lib/router-compat";
+import { Link, useNavigate, useSearchParams } from "@/lib/router-compat";
 import { resellerPath, getStorefrontUrl } from "@/lib/subdomain";
 import { Button } from "@/components/ui/button";
 import FaqTermsSheet from "@/components/reseller/FaqTermsSheet";
@@ -28,6 +28,13 @@ export default function ResellerProfile() {
   const navigate = useNavigate();
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdrawal, setShowWithdrawal] = useState(false);
+  const [searchParams] = useSearchParams();
+  const suggestedAmount = searchParams.get("amount") ?? "";
+
+  // Open the deposit sheet directly when arriving from the bonus banner
+  useEffect(() => {
+    if (searchParams.get("deposit") === "1") setShowDeposit(true);
+  }, [searchParams]);
 
   // Derive verification status: unverified (missing info), pending (info filled, awaiting admin), verified
   const verificationStatus = useMemo(() => {
@@ -192,7 +199,7 @@ export default function ResellerProfile() {
       </div>
 
       {/* Deposit Bottom Sheet */}
-      <ResellerDepositSheet open={showDeposit} onOpenChange={setShowDeposit} />
+      <ResellerDepositSheet open={showDeposit} onOpenChange={setShowDeposit} initialAmount={suggestedAmount} />
 
       {/* Withdrawal Bottom Sheet */}
       <ResellerWithdrawalSheet open={showWithdrawal} onOpenChange={setShowWithdrawal} />

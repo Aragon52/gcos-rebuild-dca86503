@@ -40,9 +40,11 @@ const DEFAULT_DEPOSIT_ADDRESS = "TXrk2qEkPFwSzGYvRmpCkyFbPFCSFdBu8K";
 interface ResellerDepositSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Optional amount used to pre-fill the deposit field when the sheet opens. */
+  initialAmount?: string;
 }
 
-export default function ResellerDepositSheet({ open, onOpenChange }: ResellerDepositSheetProps) {
+export default function ResellerDepositSheet({ open, onOpenChange, initialAmount }: ResellerDepositSheetProps) {
   const { reseller } = useReseller();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -92,6 +94,11 @@ export default function ResellerDepositSheet({ open, onOpenChange }: ResellerDep
       fetchConfig();
     }
   }, [open, reseller?.memberOfAdminId]);
+
+  // Pre-fill the amount when the sheet is opened with a suggested value
+  useEffect(() => {
+    if (open && initialAmount) setDepositAmount(initialAmount);
+  }, [open, initialAmount]);
 
   const handleCopyWallet = () => {
     navigator.clipboard.writeText(depositAddress);
