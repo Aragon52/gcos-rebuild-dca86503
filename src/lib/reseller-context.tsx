@@ -385,6 +385,16 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
       console.log(`[RESELLER_CONTEXT] Query selection complete.`);
       const selectedProductIds = selectionData ? selectionData.map((d: Record<string, unknown>) => String(d.product_id)) : [];
 
+      // Compute accumulated profit from real order history so the dashboard Total Profit card matches actual earnings.
+      const { data: orderRows } = await supabase
+        .from('orders')
+        .select('profit,profits,status')
+        .eq('reseller_id', userId);
+      const computedTotalEarnings = (orderRows || []).reduce((sum, row) => {
+        if (row.status === 'Cancelled') return sum;
+        return sum + Number(row.profit ?? row.profits ?? 0);
+      }, 0);
+
       let custom: CustomSettings = {};
       try {
         if (profileData.payment_method) {
@@ -423,7 +433,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         balance: Number(profileData.balance || 0),
         pendingBalance: Number(profileData.pending_balance || 0),
         unpickedBalance: Number(profileData.unpicked_balance || 0),
-        totalEarnings: Number(profileData.total_earnings || 0),
+        totalEarnings: computedTotalEarnings,
         totalDeposits: totalDeposits,
         referralCode: profileData.referral_code,
         referredByStaffId: profileData.referred_by_staff_id,
