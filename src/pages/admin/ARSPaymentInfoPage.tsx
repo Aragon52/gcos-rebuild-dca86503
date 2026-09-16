@@ -246,6 +246,22 @@ export default function ARSPaymentInfoPage() {
         }).eq('id', data.id);
         if (error) throw error;
       }
+
+      // Record a manual balance top-up as an approved deposit for traceability
+      const delta = Number(data.balanceDelta || 0);
+      if (delta > 0) {
+        const { error: depositError } = await supabase.from('deposit_requests').insert({
+          resellerDocId: data.id,
+          amount: Number(delta.toFixed(2)),
+          status: 'Approved',
+          remark: MANUAL_DEPOSIT_REMARK,
+          createdAt: new Date().toISOString(),
+        });
+        if (depositError) {
+          console.error("Failed to record manual deposit:", depositError);
+        }
+      }
+
       
       if (Object.keys(shopUpdates).length > 0) {
         const { error } = await supabase.from('retail_shops').upsert({
