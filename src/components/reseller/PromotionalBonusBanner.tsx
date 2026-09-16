@@ -21,10 +21,10 @@ export default function PromotionalBonusBanner() {
       </span>
       <span className="font-semibold text-foreground text-xs sm:text-sm tracking-tight flex items-center gap-1.5">
         <Gift className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 inline" />
-        Resellers making a deposit over <strong className="text-emerald-600 dark:text-emerald-400 font-bold">$200 USD</strong> will receive an exclusive bonus of <strong className="text-amber-600 dark:text-amber-400 font-bold">$10 to $100</strong> according to platform activity and credibility!
+        Resellers making a deposit over <strong className="text-emerald-600 dark:text-emerald-400 font-bold">$100 USD</strong> will receive an Exclusive Bonus of <strong className="text-amber-600 dark:text-amber-400 font-bold">$10-$100</strong> according to the market activities and credibility!
       </span>
       <span className="inline-flex items-center text-[11px] font-bold text-primary hover:underline shrink-0 gap-0.5">
-        Deposit Now <ArrowRight className="h-3 w-3" />
+        Deposit Now ==&gt;
       </span>
     </div>
   );
