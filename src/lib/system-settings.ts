@@ -10,7 +10,7 @@ export interface DepositConfig {
   updatedBy?: string;
 }
 
-export function parseSettingValue<T extends Record<string, unknown>>(value: unknown): T | null {
+export function parseSettingValue<T>(value: unknown): T | null {
   if (!value) return null;
   if (typeof value === "object") return value as T;
   if (typeof value !== "string") return null;
