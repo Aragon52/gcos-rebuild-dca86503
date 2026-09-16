@@ -43,7 +43,7 @@ export default function NotificationDialog({ open, onClose }: { open: boolean; o
         resellerNotifs = (rData || []).map(item => ({
           id: item.id,
           title: item.title || genericTitle,
-          message: item.message,
+          message: (item as { content?: string; message?: string }).content ?? (item as { message?: string }).message ?? "",
           department: "Admin",
           timestamp: item.created_at,
           read: item.read || false,
@@ -57,7 +57,7 @@ export default function NotificationDialog({ open, onClose }: { open: boolean; o
       
       return allNotifs;
     },
-    refetchInterval: 2 * 60 * 1000, 
+    refetchInterval: 60 * 1000, 
   });
 
   const markResellerNotifsRead = useMutation({
