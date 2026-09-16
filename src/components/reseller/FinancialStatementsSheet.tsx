@@ -69,7 +69,8 @@ export default function FinancialStatementsSheet() {
           type: "deposit",
           amount: Number(data.amount),
           status: (data.status?.toLowerCase() || "pending") as TransactionStatus,
-          date: data.createdAt ? data.createdAt.split('T')[0] : 'N/A'
+          date: data.createdAt ? data.createdAt.split('T')[0] : 'N/A',
+          remark: readRemark(data)
         }));
 
         const withdrawals: Transaction[] = (withdrawalSnap || []).map(data => ({
@@ -77,7 +78,8 @@ export default function FinancialStatementsSheet() {
           type: "withdrawal",
           amount: Number(data.amount),
           status: (data.status?.toLowerCase() || "pending") as TransactionStatus,
-          date: data.createdAt ? data.createdAt.split('T')[0] : 'N/A'
+          date: data.createdAt ? data.createdAt.split('T')[0] : 'N/A',
+          remark: readRemark(data)
         }));
 
         const all = [...deposits, ...withdrawals].sort((a, b) => 
