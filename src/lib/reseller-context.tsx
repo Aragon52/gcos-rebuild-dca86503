@@ -433,7 +433,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         balance: Number(profileData.balance || 0),
         pendingBalance: Number(profileData.pending_balance || 0),
         unpickedBalance: Number(profileData.unpicked_balance || 0),
-        totalEarnings: Number(profileData.total_earnings || 0),
+        totalEarnings: computedTotalEarnings,
         totalDeposits: totalDeposits,
         referralCode: profileData.referral_code,
         referredByStaffId: profileData.referred_by_staff_id,
