@@ -273,9 +273,15 @@ export default function ARSPaymentInfoPage() {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_result, variables) => {
       queryClient.invalidateQueries({ queryKey: ["resellers"] });
-      toast.success("Reseller financial data updated");
+      queryClient.invalidateQueries({ queryKey: ["deposit-requests"] });
+      const delta = Number(variables.balanceDelta || 0);
+      if (delta > 0) {
+        toast.success(`Reseller financial data updated. ${fmt(delta)} recorded as a direct deposit.`);
+      } else {
+        toast.success("Reseller financial data updated");
+      }
       setIsEditing(false);
     },
     onError: (e: unknown) => {
