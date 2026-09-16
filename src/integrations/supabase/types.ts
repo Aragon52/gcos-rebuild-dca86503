@@ -109,6 +109,7 @@ export type Database = {
           amount: number | null
           createdAt: string | null
           id: string
+          remark: string | null
           resellerDocId: string | null
           screenshot: string | null
           status: string | null
@@ -117,6 +118,7 @@ export type Database = {
           amount?: number | null
           createdAt?: string | null
           id?: string
+          remark?: string | null
           resellerDocId?: string | null
           screenshot?: string | null
           status?: string | null
@@ -125,6 +127,7 @@ export type Database = {
           amount?: number | null
           createdAt?: string | null
           id?: string
+          remark?: string | null
           resellerDocId?: string | null
           screenshot?: string | null
           status?: string | null
@@ -1020,6 +1023,7 @@ export type Database = {
           createdAt: string | null
           id: string
           method: string | null
+          remark: string | null
           resellerDocId: string | null
           status: string | null
         }
@@ -1029,6 +1033,7 @@ export type Database = {
           createdAt?: string | null
           id?: string
           method?: string | null
+          remark?: string | null
           resellerDocId?: string | null
           status?: string | null
         }
@@ -1038,6 +1043,7 @@ export type Database = {
           createdAt?: string | null
           id?: string
           method?: string | null
+          remark?: string | null
           resellerDocId?: string | null
           status?: string | null
         }
