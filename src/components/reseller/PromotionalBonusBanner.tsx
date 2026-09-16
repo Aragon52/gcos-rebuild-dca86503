@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { Gift, Sparkles, ArrowRight, X } from "lucide-react";
-import { useNavigate } from "@/lib/router-compat";
+import { Gift, Sparkles, X } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { resellerPath } from "@/lib/subdomain";
+
+/** Minimum deposit that qualifies for the bonus match, pre-filled on the deposit form. */
+const BONUS_MIN_DEPOSIT = "100";
 
 export default function PromotionalBonusBanner() {
   const [dismissed, setDismissed] = useState(false);
@@ -10,7 +13,10 @@ export default function PromotionalBonusBanner() {
   if (dismissed) return null;
 
   const handleBannerClick = () => {
-    navigate(resellerPath("/reseller/profile"));
+    void navigate({
+      to: resellerPath("/reseller/profile") as never,
+      search: { deposit: "1", amount: BONUS_MIN_DEPOSIT } as never,
+    });
   };
 
   const bannerText = (
