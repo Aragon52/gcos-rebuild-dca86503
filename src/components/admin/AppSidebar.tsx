@@ -170,14 +170,14 @@ export function AppSidebar() {
     <Sidebar
       collapsible="icon"
       hoverExpand
-      className="transition-all duration-300 ease-in-out"
+      className="overflow-hidden transition-all duration-300 ease-in-out"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <SidebarHeader className="border-b border-sidebar-border p-4">
-        <div className="flex items-center gap-3">
+      <SidebarHeader className="overflow-hidden border-b border-sidebar-border p-4 group-data-[collapsible=icon]:p-2">
+        <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
           <div className="shrink-0">
-            <LogoIcon size={32} />
+            <LogoIcon size={open ? 32 : 24} />
           </div>
           <div className={cn(
             "flex flex-col overflow-hidden transition-all duration-300 whitespace-nowrap",
@@ -207,8 +207,8 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-4">
-        <div className="flex items-center gap-2">
+      <SidebarFooter className="overflow-hidden border-t border-sidebar-border p-4 group-data-[collapsible=icon]:p-2">
+        <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
           <span className="w-2 h-2 rounded-full bg-success animate-pulse shrink-0" />
           <span className={cn(
             "text-xs text-muted-foreground whitespace-nowrap transition-all duration-300 overflow-hidden",
