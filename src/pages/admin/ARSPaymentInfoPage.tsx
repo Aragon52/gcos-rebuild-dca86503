@@ -185,8 +185,7 @@ export default function ARSPaymentInfoPage() {
   });
 
   const updateResellerMutation = useMutation({
-    mutationFn: async (data: { id: string; updates: Record<string, unknown> }) => {
-      console.log("DEBUG: Mutation starting", data);
+    mutationFn: async (data: { id: string; updates: Record<string, unknown>; balanceDelta?: number }) => {
       const profileUpdates: Record<string, unknown> = {};
       const shopUpdates: Record<string, unknown> = {};
 
