@@ -27,6 +27,8 @@ import { useUnifiedResellers } from "@/lib/unified-hooks";
 
 const VIP_LABELS = ["VIP-0", "VIP-1", "VIP-2", "VIP-3", "VIP-4", "VIP-5"];
 
+const MANUAL_DEPOSIT_REMARK = "Direct deposit request via Customer Care Service";
+
 interface ResellerFinancial {
   id: string;
   resellerId: number;
