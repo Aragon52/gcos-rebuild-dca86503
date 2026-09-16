@@ -22,6 +22,7 @@ import { Route as AdminSplatRouteImport } from './routes/admin.$'
 import { Route as AdminAdminsRouteImport } from './routes/admin.admins'
 import { Route as AdminAlertsRouteImport } from './routes/admin.alerts'
 import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
+import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCustomerServiceRouteImport } from './routes/admin.customer-service'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
@@ -145,6 +146,11 @@ const AdminAlertsRoute = AdminAlertsRouteImport.update({
 const AdminAuditLogsRoute = AdminAuditLogsRouteImport.update({
   id: '/admin/audit-logs',
   path: '/admin/audit-logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCatalogRoute = AdminCatalogRouteImport.update({
+  id: '/admin/catalog',
+  path: '/admin/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminContentRoute = AdminContentRouteImport.update({
@@ -463,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/alerts': typeof AdminAlertsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/catalog': typeof AdminCatalogRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/customer-service': typeof AdminCustomerServiceRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -537,6 +544,7 @@ export interface FileRoutesByTo {
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/alerts': typeof AdminAlertsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/catalog': typeof AdminCatalogRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/customer-service': typeof AdminCustomerServiceRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -612,6 +620,7 @@ export interface FileRoutesById {
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/alerts': typeof AdminAlertsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/catalog': typeof AdminCatalogRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/customer-service': typeof AdminCustomerServiceRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -688,6 +697,7 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/alerts'
     | '/admin/audit-logs'
+    | '/admin/catalog'
     | '/admin/content'
     | '/admin/customer-service'
     | '/admin/customers'
@@ -762,6 +772,7 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/alerts'
     | '/admin/audit-logs'
+    | '/admin/catalog'
     | '/admin/content'
     | '/admin/customer-service'
     | '/admin/customers'
@@ -836,6 +847,7 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/alerts'
     | '/admin/audit-logs'
+    | '/admin/catalog'
     | '/admin/content'
     | '/admin/customer-service'
     | '/admin/customers'
@@ -911,6 +923,7 @@ export interface RootRouteChildren {
   AdminAdminsRoute: typeof AdminAdminsRoute
   AdminAlertsRoute: typeof AdminAlertsRoute
   AdminAuditLogsRoute: typeof AdminAuditLogsRoute
+  AdminCatalogRoute: typeof AdminCatalogRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminCustomerServiceRoute: typeof AdminCustomerServiceRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
@@ -1060,6 +1073,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/audit-logs'
       fullPath: '/admin/audit-logs'
       preLoaderRoute: typeof AdminAuditLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/catalog': {
+      id: '/admin/catalog'
+      path: '/admin/catalog'
+      fullPath: '/admin/catalog'
+      preLoaderRoute: typeof AdminCatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/content': {
@@ -1527,6 +1547,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminAdminsRoute: AdminAdminsRoute,
   AdminAlertsRoute: AdminAlertsRoute,
   AdminAuditLogsRoute: AdminAuditLogsRoute,
+  AdminCatalogRoute: AdminCatalogRoute,
   AdminContentRoute: AdminContentRoute,
   AdminCustomerServiceRoute: AdminCustomerServiceRoute,
   AdminCustomersRoute: AdminCustomersRoute,
