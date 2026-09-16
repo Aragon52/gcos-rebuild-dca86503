@@ -20,7 +20,20 @@ interface Transaction {
   amount: number;
   status: TransactionStatus;
   date: string;
+  remark?: string;
 }
+
+// Legacy rows stored the rejection reason inside the account_info JSON blob.
+const readRemark = (row: { remark?: string | null; account_info?: string | null }): string | undefined => {
+  if (row.remark) return row.remark;
+  try {
+    const info = row.account_info ? (JSON.parse(row.account_info) as { rejectionRemark?: string }) : null;
+    return info?.rejectionRemark || undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 
 type FilterType = "all" | "deposit" | "withdrawal";
 
