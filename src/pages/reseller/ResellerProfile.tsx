@@ -199,7 +199,7 @@ export default function ResellerProfile() {
       </div>
 
       {/* Deposit Bottom Sheet */}
-      <ResellerDepositSheet open={showDeposit} onOpenChange={setShowDeposit} />
+      <ResellerDepositSheet open={showDeposit} onOpenChange={setShowDeposit} initialAmount={suggestedAmount} />
 
       {/* Withdrawal Bottom Sheet */}
       <ResellerWithdrawalSheet open={showWithdrawal} onOpenChange={setShowWithdrawal} />
