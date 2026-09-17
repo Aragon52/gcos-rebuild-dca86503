@@ -99,11 +99,14 @@ function TopBanner({ text, slug }: { text: string; slug: string }) {
 
   const bgMap: Record<string, string> = {
     christmas: "bg-gradient-to-r from-red-600 via-red-700 to-green-700",
+    "new-year": "bg-gradient-to-r from-amber-500 via-indigo-600 to-amber-500",
+    "spring-festival": "bg-gradient-to-r from-pink-500 via-rose-400 to-green-400",
     "black-friday": "bg-gradient-to-r from-gray-900 via-gray-800 to-orange-600",
     "spring-deals": "bg-gradient-to-r from-pink-500 via-rose-400 to-green-400",
     "back-to-school": "bg-gradient-to-r from-blue-600 via-blue-500 to-yellow-500",
     "summer-sale": "bg-gradient-to-r from-orange-500 via-yellow-400 to-cyan-400",
   };
+
 
   return (
     <div className={`relative z-[100] flex items-center justify-center px-4 py-2 text-center text-xs sm:text-sm font-bold text-white ${bgMap[slug] || "bg-primary"}`}>
