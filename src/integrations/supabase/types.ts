@@ -754,25 +754,49 @@ export type Database = {
       }
       seasonal_themes: {
         Row: {
+          banner_message: string | null
           created_at: string | null
+          cta_label: string | null
+          cta_path: string | null
           decorations: Json | null
           id: string
           is_active: boolean | null
+          name: string | null
+          show_on_reseller: boolean
+          show_on_storefront: boolean
           slug: string | null
+          template: string
+          updated_at: string
         }
         Insert: {
+          banner_message?: string | null
           created_at?: string | null
-          decorations?: Json | null
-          id: string
-          is_active?: boolean | null
-          slug?: string | null
-        }
-        Update: {
-          created_at?: string | null
+          cta_label?: string | null
+          cta_path?: string | null
           decorations?: Json | null
           id?: string
           is_active?: boolean | null
+          name?: string | null
+          show_on_reseller?: boolean
+          show_on_storefront?: boolean
           slug?: string | null
+          template?: string
+          updated_at?: string
+        }
+        Update: {
+          banner_message?: string | null
+          created_at?: string | null
+          cta_label?: string | null
+          cta_path?: string | null
+          decorations?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string | null
+          show_on_reseller?: boolean
+          show_on_storefront?: boolean
+          slug?: string | null
+          template?: string
+          updated_at?: string
         }
         Relationships: []
       }

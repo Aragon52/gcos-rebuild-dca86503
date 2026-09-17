@@ -2,25 +2,65 @@ import { useState } from "react";
 import { Gift, Sparkles, X } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { resellerPath } from "@/lib/subdomain";
+import { useSeasonalTheme } from "@/lib/seasonal-theme-context-hooks";
+import { getTemplate } from "@/lib/seasonal-campaigns";
 
 /** Minimum deposit that qualifies for the bonus match, pre-filled on the deposit form. */
 const BONUS_MIN_DEPOSIT = "100";
 
+const DEFAULT_BANNER_CLASS =
+  "bg-gradient-to-r from-amber-500/15 via-emerald-500/20 to-amber-500/15 dark:from-amber-900/30 dark:via-emerald-900/30 dark:to-amber-900/30 border-emerald-500/30";
+
 export default function PromotionalBonusBanner() {
   const [dismissed, setDismissed] = useState(false);
   const navigate = useNavigate();
+  const { campaign } = useSeasonalTheme();
 
   if (dismissed) return null;
 
+  const seasonal =
+    campaign && campaign.showOnReseller && campaign.bannerMessage.trim() ? campaign : null;
+  const template = seasonal ? getTemplate(seasonal.template) : null;
+
   const handleBannerClick = () => {
+    if (seasonal) {
+      const target = seasonal.ctaPath?.trim() || "/reseller/profile";
+      if (/^https?:\/\//i.test(target)) {
+        window.open(target, "_blank", "noopener,noreferrer");
+        return;
+      }
+      void navigate({ to: resellerPath(target) as never });
+      return;
+    }
     void navigate({
       to: resellerPath("/reseller/profile") as never,
       search: { deposit: "1", amount: BONUS_MIN_DEPOSIT } as never,
     });
   };
 
-  const bannerText = (
-    <div className="flex items-center gap-3 px-6 cursor-pointer hover:opacity-95 transition-opacity" onClick={handleBannerClick}>
+  const bannerText = seasonal ? (
+    <div
+      className="flex items-center gap-3 px-6 cursor-pointer hover:opacity-95 transition-opacity"
+      onClick={handleBannerClick}
+    >
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-foreground/10 border border-foreground/15 shrink-0">
+        <Sparkles className={`h-3 w-3 animate-pulse ${template?.accentClass ?? ""}`} />
+        {seasonal.name}
+      </span>
+      <span className="font-semibold text-foreground text-xs sm:text-sm tracking-tight">
+        {seasonal.bannerMessage}
+      </span>
+      {seasonal.ctaLabel.trim() && (
+        <span className="inline-flex items-center text-[11px] font-bold text-primary hover:underline shrink-0 gap-0.5">
+          {seasonal.ctaLabel}
+        </span>
+      )}
+    </div>
+  ) : (
+    <div
+      className="flex items-center gap-3 px-6 cursor-pointer hover:opacity-95 transition-opacity"
+      onClick={handleBannerClick}
+    >
       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0">
         <Sparkles className="h-3 w-3 animate-pulse" />
         Deposit Bonus Match
@@ -36,7 +76,11 @@ export default function PromotionalBonusBanner() {
   );
 
   return (
-    <div className="relative w-full bg-gradient-to-r from-amber-500/15 via-emerald-500/20 to-amber-500/15 dark:from-amber-900/30 dark:via-emerald-900/30 dark:to-amber-900/30 border-b border-emerald-500/30 py-1.5 overflow-hidden select-none z-30">
+    <div
+      className={`relative w-full border-b py-1.5 overflow-hidden select-none z-30 ${
+        template?.bannerClass ?? DEFAULT_BANNER_CLASS
+      }`}
+    >
       <div className="flex w-full overflow-hidden">
         <div className="animate-marquee-infinite flex items-center">
           {bannerText}

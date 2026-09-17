@@ -22,6 +22,7 @@ import { Route as AdminSplatRouteImport } from './routes/admin.$'
 import { Route as AdminAdminsRouteImport } from './routes/admin.admins'
 import { Route as AdminAlertsRouteImport } from './routes/admin.alerts'
 import { Route as AdminAuditLogsRouteImport } from './routes/admin.audit-logs'
+import { Route as AdminCampaignsRouteImport } from './routes/admin.campaigns'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCustomerServiceRouteImport } from './routes/admin.customer-service'
@@ -146,6 +147,11 @@ const AdminAlertsRoute = AdminAlertsRouteImport.update({
 const AdminAuditLogsRoute = AdminAuditLogsRouteImport.update({
   id: '/admin/audit-logs',
   path: '/admin/audit-logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCampaignsRoute = AdminCampaignsRouteImport.update({
+  id: '/admin/campaigns',
+  path: '/admin/campaigns',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCatalogRoute = AdminCatalogRouteImport.update({
@@ -469,6 +475,7 @@ export interface FileRoutesByFullPath {
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/alerts': typeof AdminAlertsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/customer-service': typeof AdminCustomerServiceRoute
@@ -544,6 +551,7 @@ export interface FileRoutesByTo {
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/alerts': typeof AdminAlertsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/customer-service': typeof AdminCustomerServiceRoute
@@ -620,6 +628,7 @@ export interface FileRoutesById {
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/alerts': typeof AdminAlertsRoute
   '/admin/audit-logs': typeof AdminAuditLogsRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/customer-service': typeof AdminCustomerServiceRoute
@@ -697,6 +706,7 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/alerts'
     | '/admin/audit-logs'
+    | '/admin/campaigns'
     | '/admin/catalog'
     | '/admin/content'
     | '/admin/customer-service'
@@ -772,6 +782,7 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/alerts'
     | '/admin/audit-logs'
+    | '/admin/campaigns'
     | '/admin/catalog'
     | '/admin/content'
     | '/admin/customer-service'
@@ -847,6 +858,7 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/alerts'
     | '/admin/audit-logs'
+    | '/admin/campaigns'
     | '/admin/catalog'
     | '/admin/content'
     | '/admin/customer-service'
@@ -923,6 +935,7 @@ export interface RootRouteChildren {
   AdminAdminsRoute: typeof AdminAdminsRoute
   AdminAlertsRoute: typeof AdminAlertsRoute
   AdminAuditLogsRoute: typeof AdminAuditLogsRoute
+  AdminCampaignsRoute: typeof AdminCampaignsRoute
   AdminCatalogRoute: typeof AdminCatalogRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminCustomerServiceRoute: typeof AdminCustomerServiceRoute
@@ -1073,6 +1086,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/audit-logs'
       fullPath: '/admin/audit-logs'
       preLoaderRoute: typeof AdminAuditLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/campaigns': {
+      id: '/admin/campaigns'
+      path: '/admin/campaigns'
+      fullPath: '/admin/campaigns'
+      preLoaderRoute: typeof AdminCampaignsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/catalog': {
@@ -1547,6 +1567,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminAdminsRoute: AdminAdminsRoute,
   AdminAlertsRoute: AdminAlertsRoute,
   AdminAuditLogsRoute: AdminAuditLogsRoute,
+  AdminCampaignsRoute: AdminCampaignsRoute,
   AdminCatalogRoute: AdminCatalogRoute,
   AdminContentRoute: AdminContentRoute,
   AdminCustomerServiceRoute: AdminCustomerServiceRoute,
