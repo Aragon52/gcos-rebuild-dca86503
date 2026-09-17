@@ -62,32 +62,23 @@ const getTranslationKey = (code: string) => {
 
 const resources: Record<string, { translation: Record<string, unknown> }> = {
   en: { translation: en },
-  id: { translation: id },
-  ar: { translation: ar },
-  ru: { translation: ru },
-  uk: { translation: uk },
-  zh: { translation: zh },
-  tr: { translation: tr },
-  hi: { translation: hi },
-  ja: { translation: ja },
-  ko: { translation: ko },
-  vi: { translation: vi },
-  ms: { translation: ms },
-  fil: { translation: fil },
-  kk: { translation: kk },
-  tg: { translation: tg },
-  uz: { translation: uz },
-  az: { translation: az },
-  bg: { translation: bg },
-  cs: { translation: cs },
-  fa: { translation: fa },
-  he: { translation: he },
-  hr: { translation: hr },
-  hu: { translation: hu },
-  pl: { translation: pl },
-  ro: { translation: ro },
-  sk: { translation: sk },
-  sr: { translation: sr },
+};
+
+const availableLanguages = SUPPORTED_LANGUAGES.map((l) => l.value as string);
+
+const loadedLanguages = new Set<string>(["en"]);
+
+export const loadLanguage = async (code: string) => {
+  const key = getTranslationKey(code);
+  if (loadedLanguages.has(key)) return;
+  const loader = localeLoaders[`./locales/${key}.json`];
+  if (!loader) return;
+  loadedLanguages.add(key);
+  const mod = await loader();
+  i18n.addResourceBundle(key, "translation", mod.default, true, true);
+  if (getTranslationKey(i18n.language) === key) {
+    await i18n.changeLanguage(code);
+  }
 };
 
 const isBrowser = typeof window !== "undefined";
@@ -100,10 +91,11 @@ if (!i18n.isInitialized) {
     resources,
     lng: isBrowser ? undefined : "en",
     fallbackLng: "en",
-    supportedLngs: Object.keys(resources),
+    supportedLngs: availableLanguages,
     nonExplicitSupportedLngs: true,
     load: "languageOnly",
-    
+    partialBundledLanguages: true,
+
     react: { useSuspense: false },
     detection: {
       order: ["localStorage", "navigator"],
@@ -114,7 +106,16 @@ if (!i18n.isInitialized) {
       escapeValue: false,
     },
   });
+
+  if (isBrowser && i18n.language) {
+    void loadLanguage(i18n.language);
+  }
 }
+
+// Fetch the translation bundle the first time a language is selected.
+i18n.on("languageChanged", (lng) => {
+  void loadLanguage(lng);
+});
 
 // Handle RTL direction
 i18n.on('languageChanged', (lng) => {
