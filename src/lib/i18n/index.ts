@@ -2,35 +2,14 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
-// Translation imports
+// Only English ships in the initial bundle; every other language is fetched
+// on demand the first time it is selected (keeps the first load small).
 import en from "./locales/en.json";
-import id from "./locales/id.json";
-import ar from "./locales/ar.json";
-import ru from "./locales/ru.json";
-import uk from "./locales/uk.json";
-import zh from "./locales/zh.json";
-import tr from "./locales/tr.json";
-import hi from "./locales/hi.json";
-import ja from "./locales/ja.json";
-import ko from "./locales/ko.json";
-import vi from "./locales/vi.json";
-import ms from "./locales/ms.json";
-import th from "./locales/en.json"; // Placeholder for th if needed, or use en
-import fil from "./locales/fil.json";
-import kk from "./locales/kk.json";
-import tg from "./locales/tg.json";
-import uz from "./locales/uz.json";
-import az from "./locales/az.json";
-import bg from "./locales/bg.json";
-import cs from "./locales/cs.json";
-import fa from "./locales/fa.json";
-import he from "./locales/he.json";
-import hr from "./locales/hr.json";
-import hu from "./locales/hu.json";
-import pl from "./locales/pl.json";
-import ro from "./locales/ro.json";
-import sk from "./locales/sk.json";
-import sr from "./locales/sr.json";
+
+const localeLoaders = import.meta.glob("./locales/*.json") as Record<
+  string,
+  () => Promise<{ default: Record<string, unknown> }>
+>;
 
 export const SUPPORTED_LANGUAGES = [
   // Default
@@ -83,32 +62,23 @@ const getTranslationKey = (code: string) => {
 
 const resources: Record<string, { translation: Record<string, unknown> }> = {
   en: { translation: en },
-  id: { translation: id },
-  ar: { translation: ar },
-  ru: { translation: ru },
-  uk: { translation: uk },
-  zh: { translation: zh },
-  tr: { translation: tr },
-  hi: { translation: hi },
-  ja: { translation: ja },
-  ko: { translation: ko },
-  vi: { translation: vi },
-  ms: { translation: ms },
-  fil: { translation: fil },
-  kk: { translation: kk },
-  tg: { translation: tg },
-  uz: { translation: uz },
-  az: { translation: az },
-  bg: { translation: bg },
-  cs: { translation: cs },
-  fa: { translation: fa },
-  he: { translation: he },
-  hr: { translation: hr },
-  hu: { translation: hu },
-  pl: { translation: pl },
-  ro: { translation: ro },
-  sk: { translation: sk },
-  sr: { translation: sr },
+};
+
+const availableLanguages = SUPPORTED_LANGUAGES.map((l) => l.value as string);
+
+const loadedLanguages = new Set<string>(["en"]);
+
+export const loadLanguage = async (code: string) => {
+  const key = getTranslationKey(code);
+  if (loadedLanguages.has(key)) return;
+  const loader = localeLoaders[`./locales/${key}.json`];
+  if (!loader) return;
+  loadedLanguages.add(key);
+  const mod = await loader();
+  i18n.addResourceBundle(key, "translation", mod.default, true, true);
+  if (getTranslationKey(i18n.language) === key) {
+    await i18n.changeLanguage(code);
+  }
 };
 
 const isBrowser = typeof window !== "undefined";
@@ -121,10 +91,11 @@ if (!i18n.isInitialized) {
     resources,
     lng: isBrowser ? undefined : "en",
     fallbackLng: "en",
-    supportedLngs: Object.keys(resources),
+    supportedLngs: availableLanguages,
     nonExplicitSupportedLngs: true,
     load: "languageOnly",
-    
+    partialBundledLanguages: true,
+
     react: { useSuspense: false },
     detection: {
       order: ["localStorage", "navigator"],
@@ -135,7 +106,16 @@ if (!i18n.isInitialized) {
       escapeValue: false,
     },
   });
+
+  if (isBrowser && i18n.language) {
+    void loadLanguage(i18n.language);
+  }
 }
+
+// Fetch the translation bundle the first time a language is selected.
+i18n.on("languageChanged", (lng) => {
+  void loadLanguage(lng);
+});
 
 // Handle RTL direction
 i18n.on('languageChanged', (lng) => {
