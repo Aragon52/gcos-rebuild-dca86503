@@ -291,6 +291,10 @@
   animation: marquee-infinite 28s linear infinite;
 }
 
-.animate-marquee-infinite:hover {
-  animation-play-state: paused;
+/* Pause only for real pointing devices: on touch screens a tap leaves a
+   sticky :hover state that would freeze the marquee permanently. */
+@media (hover: hover) and (pointer: fine) {
+  .animate-marquee-infinite:hover {
+    animation-play-state: paused;
+  }
 }
