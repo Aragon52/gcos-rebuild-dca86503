@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import type { SeasonalCampaign } from "./seasonal-campaigns";
 
 export interface SeasonalDecorations {
   elements?: string[];
@@ -12,6 +13,8 @@ export interface SeasonalThemeContextType {
   name: string;
   decorations: SeasonalDecorations;
   isActive: boolean; // true if a non-"none" theme is active
+  /** Full active campaign record, when an admin campaign is running. */
+  campaign: SeasonalCampaign | null;
 }
 
 export const SeasonalThemeContext = createContext<SeasonalThemeContextType>({
@@ -19,6 +22,7 @@ export const SeasonalThemeContext = createContext<SeasonalThemeContextType>({
   name: "None",
   decorations: {},
   isActive: false,
+  campaign: null,
 });
 
 export function useSeasonalTheme() {
