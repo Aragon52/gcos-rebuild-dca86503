@@ -128,6 +128,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/brand/icon-192.png" },
+      { rel: "manifest", href: "/manifest.json" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -161,9 +164,31 @@ function RootComponent() {
 
   useEffect(() => {
     initPWAInstall();
-    if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    // Register the service worker only on real production domains — never in
+    // dev, iframes, or Lovable previews, where it would serve stale caches.
+    const host = window.location.hostname;
+    const isPreviewHost =
+      host.startsWith('id-preview--') ||
+      host.startsWith('preview--') ||
+      host === 'lovableproject.com' ||
+      host.endsWith('.lovableproject.com') ||
+      host.endsWith('.lovable.app') ||
+      host.endsWith('.lovableproject-dev.com') ||
+      host.endsWith('.beta.lovable.dev');
+    const swDisabled = new URLSearchParams(window.location.search).has('sw');
+    if (
+      'serviceWorker' in navigator &&
+      import.meta.env.PROD &&
+      window.self === window.top &&
+      !isPreviewHost &&
+      !swDisabled
+    ) {
       navigator.serviceWorker.register('/sw.js').catch((error) => {
         console.error('[v0] Service worker registration failed:', error);
+      });
+    } else if ('serviceWorker' in navigator && (isPreviewHost || swDisabled)) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => registration.unregister());
       });
     }
   }, []);
