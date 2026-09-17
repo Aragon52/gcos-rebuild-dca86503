@@ -121,11 +121,12 @@ function TopBanner({ text, slug }: { text: string; slug: string }) {
 
 /* ── Main decorator component ── */
 export function SeasonalDecorations() {
-  const { slug, decorations, isActive } = useSeasonalTheme();
+  const { slug, decorations, isActive, campaign } = useSeasonalTheme();
+  const visible = isActive && (campaign ? campaign.showOnStorefront : true);
 
   // Inject seasonal CSS variables
   useEffect(() => {
-    if (isActive && decorations.colors) {
+    if (visible && decorations.colors) {
       const root = document.documentElement;
       if (decorations.colors.accent) {
         root.style.setProperty("--seasonal-accent", decorations.colors.accent);
@@ -138,13 +139,15 @@ export function SeasonalDecorations() {
         root.style.removeProperty("--seasonal-secondary");
       };
     }
-  }, [isActive, decorations.colors]);
+  }, [visible, decorations.colors]);
 
-  if (!isActive) return null;
+  if (!visible) return null;
+
+  const topBannerText = decorations.topBanner || campaign?.bannerMessage || "";
 
   return (
     <>
-      {decorations.topBanner && <TopBanner text={decorations.topBanner} slug={slug} />}
+      {topBannerText && <TopBanner text={topBannerText} slug={slug} />}
       {decorations.snowfall && <Snowfall />}
       {decorations.elements && decorations.elements.length > 0 && (
         <FloatingElements elements={decorations.elements} />
@@ -152,3 +155,4 @@ export function SeasonalDecorations() {
     </>
   );
 }
+
