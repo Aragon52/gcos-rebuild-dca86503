@@ -347,7 +347,8 @@
     "buying": "Buying {{quantity}}× {{name}}",
     "ratingHighLow": "Rating: High to Low",
     "results": "results",
-    "tryAdjustingFilters": "Try adjusting your filters or search terms."
+    "tryAdjustingFilters": "Try adjusting your filters or search terms.",
+    "logout": "Log out"
   },
   "product": {
     "addToCart": "Add to Cart",
