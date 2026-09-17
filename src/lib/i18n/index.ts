@@ -2,35 +2,14 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
-// Translation imports
+// Only English ships in the initial bundle; every other language is fetched
+// on demand the first time it is selected (keeps the first load small).
 import en from "./locales/en.json";
-import id from "./locales/id.json";
-import ar from "./locales/ar.json";
-import ru from "./locales/ru.json";
-import uk from "./locales/uk.json";
-import zh from "./locales/zh.json";
-import tr from "./locales/tr.json";
-import hi from "./locales/hi.json";
-import ja from "./locales/ja.json";
-import ko from "./locales/ko.json";
-import vi from "./locales/vi.json";
-import ms from "./locales/ms.json";
-import th from "./locales/en.json"; // Placeholder for th if needed, or use en
-import fil from "./locales/fil.json";
-import kk from "./locales/kk.json";
-import tg from "./locales/tg.json";
-import uz from "./locales/uz.json";
-import az from "./locales/az.json";
-import bg from "./locales/bg.json";
-import cs from "./locales/cs.json";
-import fa from "./locales/fa.json";
-import he from "./locales/he.json";
-import hr from "./locales/hr.json";
-import hu from "./locales/hu.json";
-import pl from "./locales/pl.json";
-import ro from "./locales/ro.json";
-import sk from "./locales/sk.json";
-import sr from "./locales/sr.json";
+
+const localeLoaders = import.meta.glob("./locales/*.json") as Record<
+  string,
+  () => Promise<{ default: Record<string, unknown> }>
+>;
 
 export const SUPPORTED_LANGUAGES = [
   // Default
