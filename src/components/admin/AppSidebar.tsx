@@ -3,7 +3,7 @@ import {
   UserCog, MessageSquare, Shield, ScrollText, Lock,
   Globe, Activity, AlertTriangle, FileCode, ChevronDown, Store,
   UserCheck, Wallet, Puzzle, Megaphone, Newspaper, Headset,
-  ShieldCheck, Landmark, CreditCard,
+  ShieldCheck, Landmark, CreditCard, Sparkles,
 } from "lucide-react";
 import { useLocation, Link } from "@/lib/router-compat";
 import { useMemo } from "react";
