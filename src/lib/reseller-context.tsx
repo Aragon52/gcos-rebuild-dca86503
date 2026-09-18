@@ -609,12 +609,22 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
       }
       setReseller(prev => prev ? { ...prev, ...nextResellerState } : null);
 
-      if (Object.keys(profileUpdates).length > 0) await supabase.from('reseller_profiles').update(profileUpdates).eq('id', reseller.id);
-      if (Object.keys(userUpdates).length > 0) await supabase.from('users').update(userUpdates).eq('id', reseller.id);
-      if (Object.keys(shopUpdates).length > 0) await supabase.from('retail_shops').upsert({ id: reseller.id, ...shopUpdates }, { onConflict: 'id' });
+      if (Object.keys(profileUpdates).length > 0) {
+        const { error } = await supabase.from('reseller_profiles').update(profileUpdates).eq('id', reseller.id);
+        if (error) throw error;
+      }
+      if (Object.keys(userUpdates).length > 0) {
+        const { error } = await supabase.from('users').update(userUpdates).eq('id', reseller.id);
+        if (error) throw error;
+      }
+      if (Object.keys(shopUpdates).length > 0) {
+        const { error } = await supabase.from('retail_shops').upsert({ id: reseller.id, ...shopUpdates }, { onConflict: 'id' });
+        if (error) throw error;
+      }
 
     } catch (e) {
       console.error("[RESELLER_CONTEXT] Error updating profile:", e);
+      throw e;
     }
   };
 

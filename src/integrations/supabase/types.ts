@@ -562,15 +562,20 @@ export type Database = {
           member_of_admin_id: string | null
           payment_method: string | null
           pending_balance: number | null
+          phone: string | null
           product_limit: number | null
+          profile_picture: string | null
           referral_code: string | null
           referral_id: string | null
           referred_by_staff_id: string | null
           registration_date: string | null
           reseller_id: number | null
+          shop_hero_banner: string | null
+          shop_logo: string | null
           shop_name: string | null
           shop_slug: string | null
           star_rating: number | null
+          store_theme: string | null
           total_deposits: number | null
           total_earnings: number | null
           total_orders: number | null
@@ -595,15 +600,20 @@ export type Database = {
           member_of_admin_id?: string | null
           payment_method?: string | null
           pending_balance?: number | null
+          phone?: string | null
           product_limit?: number | null
+          profile_picture?: string | null
           referral_code?: string | null
           referral_id?: string | null
           referred_by_staff_id?: string | null
           registration_date?: string | null
           reseller_id?: number | null
+          shop_hero_banner?: string | null
+          shop_logo?: string | null
           shop_name?: string | null
           shop_slug?: string | null
           star_rating?: number | null
+          store_theme?: string | null
           total_deposits?: number | null
           total_earnings?: number | null
           total_orders?: number | null
@@ -628,15 +638,20 @@ export type Database = {
           member_of_admin_id?: string | null
           payment_method?: string | null
           pending_balance?: number | null
+          phone?: string | null
           product_limit?: number | null
+          profile_picture?: string | null
           referral_code?: string | null
           referral_id?: string | null
           referred_by_staff_id?: string | null
           registration_date?: string | null
           reseller_id?: number | null
+          shop_hero_banner?: string | null
+          shop_logo?: string | null
           shop_name?: string | null
           shop_slug?: string | null
           star_rating?: number | null
+          store_theme?: string | null
           total_deposits?: number | null
           total_earnings?: number | null
           total_orders?: number | null
@@ -993,6 +1008,7 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          phone: string | null
           role: string | null
         }
         Insert: {
@@ -1001,6 +1017,7 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          phone?: string | null
           role?: string | null
         }
         Update: {
@@ -1009,6 +1026,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          phone?: string | null
           role?: string | null
         }
         Relationships: []
