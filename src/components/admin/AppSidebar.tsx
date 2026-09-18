@@ -85,6 +85,7 @@ const canonicalNavGroups: NavGroup[] = [
     label: "MISCELLANEOUS GROUP",
     items: [
       { title: "Product Catalog", icon: Package, url: "/admin/catalog" },
+      { title: "Seasonal campaigns", icon: Sparkles, url: "/admin/campaigns" },
       { title: "Customers", icon: UserCheck, url: "/admin/ach/customers" },
       { title: "Financial", icon: Wallet, url: "/admin/ach/financial" },
       { title: "Orders", icon: ShoppingCart, url: "/admin/orders" },
