@@ -41,10 +41,22 @@ export interface ResellerProfile {
   memberOfAdminId?: string;
 }
 
+export type ResellerLoginFailureReason =
+  | "invalid-credentials"
+  | "email-unconfirmed"
+  | "no-reseller-profile"
+  | "unknown";
+
+export interface ResellerLoginResult {
+  success: boolean;
+  reason?: ResellerLoginFailureReason;
+  message?: string;
+}
+
 export interface ResellerContextType {
   reseller: ResellerProfile | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<ResellerLoginResult>;
   register: (data: { firstName: string; lastName: string; emailOrPhone: string; password: string; shopName?: string; referralCode?: string; isPhone?: boolean }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateProfile: (updates: Partial<ResellerProfile>) => void;

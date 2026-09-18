@@ -64,12 +64,14 @@ export default function ResellerLogin() {
     setLoading(true);
     setError("");
     const normalizedEmail = emailOrPhone.toLowerCase().trim();
-    const success = await login(normalizedEmail, password);
+    const result = await login(normalizedEmail, password);
     setLoading(false);
-    if (success) {
+    if (result.success) {
       navigate(resellerPath("/reseller/dashboard"));
-    } else {
+    } else if (result.reason === "invalid-credentials") {
       setError(t("reseller.invalidCredentials"));
+    } else {
+      setError(result.message || t("reseller.invalidCredentials"));
     }
   };
 

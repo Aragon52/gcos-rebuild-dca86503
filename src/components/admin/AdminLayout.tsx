@@ -40,6 +40,7 @@ const canonicalPageTitles: Record<string, { title: string; breadcrumb: React.Rea
   "/admin/ars/retail-shops": { title: "Retail Shops", breadcrumb: "Management & Financing" },
   "/admin/ars/orders": { title: "Track & Manage Orders", breadcrumb: "Management & Financing" },
   "/admin/ars/payment-info": { title: "Payment Info's & Balance", breadcrumb: "Management & Financing" },
+  "/admin/campaigns": { title: "Seasonal campaigns", breadcrumb: "Miscellaneous" },
   "/admin/system": { title: "System Configuration", breadcrumb: "System" },
   "/admin/alerts": { title: "Active Alerts", breadcrumb: "System" },
   "/admin/system-logs": { title: "System Logs", breadcrumb: "System" },

@@ -14,6 +14,7 @@ export const STAFF_ALLOWED_PATHS = new Set([
   "/admin",
   "/admin/inventory",
   "/admin/catalog",
+  "/admin/campaigns",
   "/admin/orders",
   "/admin/resellers",
   "/admin/customer-service",
