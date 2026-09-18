@@ -470,32 +470,39 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
     return fetchPromise;
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<ResellerLoginResult> => {
     const normalizedEmail = email.toLowerCase().trim();
-    console.log(`[RESELLER_CONTEXT] Attempting login for: ${normalizedEmail}`);
     try {
       setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
-      if (error) throw error;
-      console.log(`[RESELLER_CONTEXT] Supabase Auth login successful for UID: ${data.user?.id}`);
-      
+      if (error) {
+        setLoading(false);
+        const message = error.message || "";
+        if (/email not confirmed/i.test(message)) {
+          return { success: false, reason: "email-unconfirmed", message: "Your email address is not confirmed yet. Please contact support." };
+        }
+        return { success: false, reason: "invalid-credentials", message };
+      }
+
       if (data.user) {
         currentUserRef.current = data.user.id;
         const successProfile = await fetchProfile(data.user.id, data.user.email || '');
         if (!successProfile) {
-          console.warn("[RESELLER_CONTEXT] Failed to load reseller profile, logging out");
           await supabase.auth.signOut();
           currentUserRef.current = null;
           setReseller(null);
           setLoading(false);
-          return false;
+          return {
+            success: false,
+            reason: "no-reseller-profile",
+            message: "This account exists but is not registered as a reseller. Please register on the reseller portal or contact support.",
+          };
         }
       }
-      return true;
+      return { success: true };
     } catch (e: unknown) {
-      console.error("[RESELLER_CONTEXT] Login error details:", (e as Error).message);
       setLoading(false);
-      return false;
+      return { success: false, reason: "unknown", message: (e as Error).message };
     }
   };
 
