@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDbProducts } from "@/hooks/use-db-products";
 import type { Product } from "@/lib/types";
-import { ResellerContext, type ResellerProfile, type StoreTheme, getLevelByDeposit } from "@/lib/reseller-context-hooks";
+import { ResellerContext, type ResellerProfile, type ResellerLoginResult, type StoreTheme, getLevelByDeposit } from "@/lib/reseller-context-hooks";
 import { supabase } from "./supabase";
 import { useFcmToken } from "@/hooks/use-fcm-token";
 

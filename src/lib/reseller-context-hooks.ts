@@ -41,6 +41,18 @@ export interface ResellerProfile {
   memberOfAdminId?: string;
 }
 
+export type ResellerLoginFailureReason =
+  | "invalid-credentials"
+  | "email-unconfirmed"
+  | "no-reseller-profile"
+  | "unknown";
+
+export interface ResellerLoginResult {
+  success: boolean;
+  reason?: ResellerLoginFailureReason;
+  message?: string;
+}
+
 export interface ResellerContextType {
   reseller: ResellerProfile | null;
   loading: boolean;
