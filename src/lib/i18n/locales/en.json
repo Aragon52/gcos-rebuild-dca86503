@@ -348,7 +348,15 @@
     "ratingHighLow": "Rating: High to Low",
     "results": "results",
     "tryAdjustingFilters": "Try adjusting your filters or search terms.",
-    "logout": "Log out"
+    "logout": "Log out",
+    "saveChanges": "Save changes",
+    "saving": "Saving",
+    "upload": "Upload",
+    "fileTooLarge": "File too large",
+    "imageUnder2MB": "Please choose an image under 2 MB.",
+    "imageUnder5MB": "Please choose an image under 5 MB.",
+    "error": "Something went wrong",
+    "failedToProcessImage": "We couldn't process that image. Please try another one."
   },
   "product": {
     "addToCart": "Add to Cart",
