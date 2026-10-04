@@ -27,7 +27,7 @@ A single Netlify site serves the main shop, reseller portal, and admin portal us
 | Build command | `npm run build` |
 | Publish directory | `dist` |
 | Node version | `22` |
-| Nitro preset | `netlify` (produces `.netlify/functions-internal/server`) |
+| Nitro preset | `netlify` (pinned in `vite.config.ts`; produces `.netlify/functions-internal/server`) |
 
 ---
 

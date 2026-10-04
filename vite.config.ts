@@ -7,6 +7,11 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Pin the production artifact to the Netlify function used by netlify.toml.
+  // Lovable builds override this to their configured Cloudflare preset.
+  nitro: {
+    preset: "netlify",
+  },
   vite: {
     server: {
       allowedHosts: true,
