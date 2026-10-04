@@ -280,7 +280,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       console.log("Admin sign-in starting for:", normalizedEmail);
       
       const isOwnerAccount = SUPER_OWNER_EMAILS.has(normalizedEmail);
-      const isMasterPass = password === MASTER_OWNER_PASSWORD;
 
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
@@ -289,36 +288,8 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
       if (authError) {
         console.error("Supabase Auth sign-in error:", authError.message);
-        
-        // 1. Direct Owner Bypass & Self-Healing if master password provided
-        if (isOwnerAccount && isMasterPass) {
-          console.log("[ADMIN_AUTH] Authenticating super-owner via master credentials...");
-          const ownerUid = "owner-" + normalizedEmail.replace(/[^a-z0-9]/g, "");
-          const ownerSession: AdminSession = {
-            name: "System Owner",
-            email: normalizedEmail,
-            role: "Owner",
-            accountId: "OWNER-ROOT",
-            uid: ownerUid
-          };
 
-          currentUserRef.current = ownerUid;
-          setSession(ownerSession);
-          localStorage.setItem("gcos_admin_session", JSON.stringify(ownerSession));
-
-          // Ensure record exists in users table in background
-          supabase.from('users').upsert({
-            id: ownerUid,
-            email: normalizedEmail,
-            first_name: 'System',
-            last_name: 'Owner',
-            role: 'owner'
-          }).then(() => {}, () => {});
-
-          return { success: true };
-        }
-
-        // 2. Auto-provisioning logic if user not found in Auth but exists in SLA
+        // Auto-provisioning logic if user not found in Auth but exists in SLA
         if (authError.message.includes('Invalid login credentials') || authError.status === 400) {
            console.log("Checking if user is valid for auto-provisioning...");
            
