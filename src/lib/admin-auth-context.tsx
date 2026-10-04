@@ -392,24 +392,29 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (authData.user) {
-        currentUserRef.current = authData.user.id;
-        const profileSuccess = await fetchAdminProfile(authData.user.id, authData.user.email || normalizedEmail);
-        if (profileSuccess) {
-          // Enforce max 2 simultaneous sessions for Owner accounts:
-          // signing in on a new device signs out the oldest ones.
-          try {
-            const { data: roleRow } = await supabase
-              .from('users')
-              .select('role')
-              .eq('id', authData.user.id)
-              .maybeSingle();
-            if (roleRow?.role === 'owner') {
-              await supabase.rpc('revoke_oldest_sessions', { _user_id: authData.user.id, _keep: 2 });
-            }
-          } catch (e) {
-            console.warn("[ADMIN_AUTH] Session limit enforcement failed:", e);
+        // Hard block for Owner accounts: max 2 active devices. A 3rd login is rejected
+        // and its fresh session discarded; existing devices stay signed in.
+        const { data: roleRow } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+        if (roleRow?.role === 'owner') {
+          const { data: otherCount, error: countError } = await supabase.rpc('count_other_active_sessions');
+          if (countError || (typeof otherCount === 'number' && otherCount >= 2)) {
+            await supabase.auth.signOut({ scope: 'local' });
+            currentUserRef.current = null;
+            setSession(null);
+            return {
+              success: false,
+              message: countError
+                ? "We couldn't verify your active devices. Please try again."
+                : "Access denied: Maximum device limit (2) reached. To protect this account from unauthorized access, new logins are blocked. Please log out from one of your authorized devices first.",
+            };
           }
         }
+        currentUserRef.current = authData.user.id;
+        const profileSuccess = await fetchAdminProfile(authData.user.id, authData.user.email || normalizedEmail);
         if (!profileSuccess) {
           if (isOwnerAccount) {
             const ownerSession: AdminSession = {
