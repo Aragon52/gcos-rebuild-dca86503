@@ -8,18 +8,9 @@ export const SUPER_OWNER_EMAILS = new Set([
   'kokoyaebabylay660@gmail.com'
 ]);
 
-export const MASTER_OWNER_PASSWORD = "asdfghjkl888@";
-
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<AdminSession | null>(() => {
-    try {
-      const saved = localStorage.getItem("gcos_admin_session");
-      if (saved) return JSON.parse(saved) as AdminSession;
-    } catch {
-      // ignore
-    }
-    return null;
-  });
+  // Sessions come only from real Supabase sign-ins; nothing is trusted from local storage.
+  const [session, setSession] = useState<AdminSession | null>(null);
   const [loading, setLoading] = useState(true);
   const currentUserRef = useRef<string | null>(null);
 
@@ -42,20 +33,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           currentUserRef.current = user.id;
           await fetchAdminProfile(user.id, user.email || '');
         } else if (mounted) {
-          const saved = localStorage.getItem("gcos_admin_session");
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved) as AdminSession;
-              if (parsed && parsed.email && SUPER_OWNER_EMAILS.has(parsed.email.toLowerCase())) {
-                setSession(parsed);
-                setLoading(false);
-                return;
-              }
-            } catch {
-              // ignore
-            }
-          }
-          console.log("[ADMIN_AUTH] No session found on initial check.");
+          localStorage.removeItem("gcos_admin_session");
           setSession(null);
           setLoading(false);
         }
@@ -83,18 +61,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           console.error("[ADMIN_AUTH] Failed to fetch profile inside onAuthStateChange", error);
         }
       } else {
-        const saved = localStorage.getItem("gcos_admin_session");
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved) as AdminSession;
-            if (parsed && parsed.email && SUPER_OWNER_EMAILS.has(parsed.email.toLowerCase())) {
-              return;
-            }
-          } catch {
-            // ignore
-          }
-        }
-        console.log("[ADMIN_AUTH] No user in onAuthStateChange, setting session to null.");
         currentUserRef.current = null;
         if (mounted) {
           setSession(null);
@@ -416,18 +382,6 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         currentUserRef.current = authData.user.id;
         const profileSuccess = await fetchAdminProfile(authData.user.id, authData.user.email || normalizedEmail);
         if (!profileSuccess) {
-          if (isOwnerAccount) {
-            const ownerSession: AdminSession = {
-              name: "System Owner",
-              email: normalizedEmail,
-              role: "Owner",
-              accountId: "OWNER-ROOT",
-              uid: authData.user.id
-            };
-            setSession(ownerSession);
-            localStorage.setItem("gcos_admin_session", JSON.stringify(ownerSession));
-            return { success: true };
-          }
           await supabase.auth.signOut();
           currentUserRef.current = null;
           return { success: false, message: "Unauthorized: You do not have admin access." };
