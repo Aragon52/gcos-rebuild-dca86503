@@ -21,19 +21,27 @@ import ResellerDepositSheet from "@/components/reseller/ResellerDepositSheet";
 import ResellerWithdrawalSheet from "@/components/reseller/ResellerWithdrawalSheet";
 import FinancialStatementsSheet from "@/components/reseller/FinancialStatementsSheet";
 import LanguageSettingsSheet from "@/components/reseller/LanguageSettingsSheet";
+import PlayStoreAssetSheet from "@/components/reseller/PlayStoreAssetSheet";
 
 export default function ResellerProfile() {
   const { reseller, logout } = useReseller();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [showDeposit, setShowDeposit] = useState(false);
+  const [depositTab, setDepositTab] = useState<"crypto" | "local">("crypto");
   const [showWithdrawal, setShowWithdrawal] = useState(false);
   const [searchParams] = useSearchParams();
   const suggestedAmount = searchParams.get("amount") ?? "";
 
   // Open the deposit sheet directly when arriving from the bonus banner
   useEffect(() => {
-    if (searchParams.get("deposit") === "1") setShowDeposit(true);
+    if (searchParams.get("deposit") === "1") {
+      const method = searchParams.get("method");
+      if (method === "crypto" || method === "local") {
+        setDepositTab(method);
+      }
+      setShowDeposit(true);
+    }
   }, [searchParams]);
 
   // Derive verification status: unverified (missing info), pending (info filled, awaiting admin), verified
@@ -126,13 +134,23 @@ export default function ResellerProfile() {
 
 
         <div className="grid grid-cols-2 gap-3 pt-1">
-          <Button className="gap-2 rounded-xl" onClick={() => setShowDeposit(true)}>
+          <Button
+            className="gap-2 rounded-xl"
+            onClick={() => {
+              setDepositTab("crypto");
+              setShowDeposit(true);
+            }}
+          >
             <ArrowDownToLine className="h-4 w-4" />
-            {t("reseller.deposit")}
+            <span>{t("reseller.deposit")}</span>
           </Button>
-          <Button variant="outline" className="gap-2 rounded-xl border-border" onClick={() => setShowWithdrawal(true)}>
+          <Button
+            variant="outline"
+            className="gap-2 rounded-xl border-border"
+            onClick={() => setShowWithdrawal(true)}
+          >
             <ArrowUpFromLine className="h-4 w-4" />
-            {t("reseller.withdrawal")}
+            <span>{t("reseller.withdrawal")}</span>
           </Button>
         </div>
       </div>
@@ -173,6 +191,9 @@ export default function ResellerProfile() {
         </a>
       </div>
 
+      {/* Google Play Store & Brand Asset Package */}
+      <PlayStoreAssetSheet />
+
       {/* Language Settings */}
       <LanguageSettingsSheet />
 
@@ -199,7 +220,7 @@ export default function ResellerProfile() {
       </div>
 
       {/* Deposit Bottom Sheet */}
-      <ResellerDepositSheet open={showDeposit} onOpenChange={setShowDeposit} initialAmount={suggestedAmount} />
+      <ResellerDepositSheet open={showDeposit} onOpenChange={setShowDeposit} initialAmount={suggestedAmount} defaultTab={depositTab} />
 
       {/* Withdrawal Bottom Sheet */}
       <ResellerWithdrawalSheet open={showWithdrawal} onOpenChange={setShowWithdrawal} />

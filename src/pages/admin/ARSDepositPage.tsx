@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import {
   MoreHorizontal, Search, Eye, CheckCircle, XCircle,
-  Filter, ChevronLeft, ChevronRight, Download, Landmark, Bitcoin, Settings, QrCode
+  Filter, ChevronLeft, ChevronRight, Download, Landmark, Bitcoin, CreditCard, Settings, QrCode, Sparkles, AlertCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
@@ -148,6 +148,9 @@ export default function ARSDepositPage() {
                  (r.resellerName?.toLowerCase().includes(q) || false) ||
                  (r.referralId?.toLowerCase().includes(q) || false) ||
                  (r.staffId?.toLowerCase().includes(q) || false) ||
+                 (r.method?.toLowerCase().includes(q) || false) ||
+                 (r.remark?.toLowerCase().includes(q) || false) ||
+                 r.amount.toString().includes(q) ||
                  (reseller && (
                    (reseller.shopName?.toLowerCase().includes(q) || false) ||
                    (reseller.resellerId?.toString().includes(q) || false)
@@ -176,8 +179,13 @@ export default function ARSDepositPage() {
   /* ─── Actions ─── */
 
   const handleApprove = async (req: DepositRequest) => {
+    if (processingId) return;
     if (!req.resellerDocId) {
       toast({ title: "Error", description: "Missing reseller document ID.", variant: "destructive" });
+      return;
+    }
+    if (req.status !== "Pending") {
+      toast({ title: "Already Processed", description: "This deposit request is no longer pending." });
       return;
     }
     setProcessingId(req.id);
@@ -185,22 +193,32 @@ export default function ARSDepositPage() {
       // 1. Update the deposit request status in Supabase
       await updateDepositStatus.mutateAsync({ id: req.id, status: "Approved" });
       
-      // 2. Update the reseller's profile in Supabase
-      const currentReseller = resellers.find(r => r.id === req.resellerDocId);
-      const newTotalDeposits = (currentReseller?.totalDeposits || 0) + req.amount;
-      const newBalance = (currentReseller?.balance || 0) + req.amount;
+      // 2. Fetch fresh reseller profile from Supabase to prevent stale balance overwrites
+      const { data: currentReseller, error: fetchErr } = await supabase
+        .from('reseller_profiles')
+        .select('balance, total_deposits, total_withdrawals, level, registration_date, created_at')
+        .eq('id', req.resellerDocId)
+        .single();
 
-      // Calculate and update VIP level and product limit
+      if (fetchErr || !currentReseller) {
+        throw new Error("Could not fetch current reseller balance.");
+      }
+
+      const newTotalDeposits = (currentReseller.total_deposits || 0) + req.amount;
+      const newBalance = (currentReseller.balance || 0) + req.amount;
+
+      // Calculate and update VIP level and product limit with registration date check
       const { calculateVipLevel, getVipLabel, getVipProductLimit } = await import("@/lib/vip-utils");
       
-      const totalWithdrawals = currentReseller?.totalWithdrawals || 0;
+      const regDate = currentReseller.registration_date || (currentReseller as any).created_at;
+      const totalWithdrawals = currentReseller.total_withdrawals || 0;
       const netDeposits = newTotalDeposits - totalWithdrawals;
-      const currentLevel = typeof currentReseller?.level === 'string' 
+      const currentLevel = typeof currentReseller.level === 'string' 
         ? Number(currentReseller.level.replace('VIP-', '')) 
-        : Number(currentReseller?.level || 0);
+        : Number(currentReseller.level || 0);
 
-      const newLevel = calculateVipLevel(netDeposits, currentLevel);
-      const newLimit = getVipProductLimit(newLevel);
+      const newLevel = calculateVipLevel(netDeposits, currentLevel, regDate);
+      const newLimit = getVipProductLimit(newLevel, regDate);
       const levelLabel = getVipLabel(newLevel);
 
       await supabase.from('reseller_profiles').update({
@@ -216,6 +234,19 @@ export default function ARSDepositPage() {
         product_limit: newLimit
       }, { onConflict: 'id' });
 
+      // 3. Send real-time notification to the reseller
+      try {
+        await supabase.from('reseller_notifications').insert({
+          reseller_id: req.resellerDocId,
+          title: "Deposit Approved & Balance Updated",
+          content: `Your deposit of $${req.amount.toLocaleString()} has been approved! $${req.amount.toLocaleString()} has been credited to your balance. Your new balance is $${newBalance.toLocaleString()} (Shop Level: ${levelLabel}).`,
+          type: "deposit_approved",
+          read: false,
+        });
+      } catch (notifErr) {
+        console.warn("Failed to create reseller notification record:", notifErr);
+      }
+
       toast({ 
         title: "Deposit Approved", 
         description: `The amount of $${req.amount.toLocaleString()} has been added. Reseller is now ${levelLabel} with a ${newLimit} product limit.` 
@@ -229,7 +260,11 @@ export default function ARSDepositPage() {
   };
 
   const handleReject = async () => {
-    if (!rejectRequest) return;
+    if (!rejectRequest || processingId) return;
+    if (rejectRequest.status !== "Pending") {
+      toast({ title: "Already Processed", description: "This deposit request is no longer pending." });
+      return;
+    }
     setProcessingId(rejectRequest.id);
     try {
       await updateDepositStatus.mutateAsync({ 
@@ -237,6 +272,22 @@ export default function ARSDepositPage() {
         status: "Rejected", 
         remark: rejectRemark 
       });
+
+      // Send rejection notification to the reseller
+      if (rejectRequest.resellerDocId) {
+        try {
+          await supabase.from('reseller_notifications').insert({
+            reseller_id: rejectRequest.resellerDocId,
+            title: "Deposit Request Rejected",
+            content: `Your deposit request of $${rejectRequest.amount.toLocaleString()} was not approved.${rejectRemark ? ` Reason: ${rejectRemark}` : ''}`,
+            type: "deposit_rejected",
+            read: false,
+          });
+        } catch (notifErr) {
+          console.warn("Failed to create rejection notification record:", notifErr);
+        }
+      }
+
       toast({ title: "Deposit Rejected", description: "The request has been marked as rejected." });
       setRejectRequest(null);
       setRejectRemark("");
@@ -339,11 +390,25 @@ export default function ARSDepositPage() {
                           {req.resellerName || (reseller ? `${reseller.firstName} ${reseller.lastName}` : "Unknown")}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2 text-xs">
-                            {req.method === "Bank Transfer" ? <Landmark className="h-3 w-3" /> : <Bitcoin className="h-3 w-3" />}
-                      {req.method}
-                    </div>
-                  </TableCell>
+                          <div className="flex items-center gap-1.5 text-xs">
+                            {req.method?.toLowerCase().includes("card") || req.remark?.toLowerCase().includes("card") || req.remark?.toLowerCase().includes("onramper") ? (
+                              <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 gap-1.5 py-0.5 font-medium">
+                                <CreditCard className="h-3 w-3 text-blue-500" />
+                                Card (Onramper)
+                              </Badge>
+                            ) : req.method === "Bank Transfer" ? (
+                              <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 gap-1.5 py-0.5 font-medium">
+                                <Landmark className="h-3 w-3 text-purple-500" />
+                                Bank Transfer
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800 gap-1.5 py-0.5 font-medium">
+                                <Bitcoin className="h-3 w-3 text-amber-500" />
+                                USDT (TRC20)
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
                   <TableCell className="text-right font-bold text-foreground">
                     ${req.amount.toLocaleString()}
                   </TableCell>
@@ -451,6 +516,17 @@ export default function ARSDepositPage() {
                       </div>
                     </div>
                   )}
+                  {viewRequest.remark && (
+                    <div className="space-y-1.5 text-sm p-4 rounded-lg border border-border bg-card">
+                      <div className="font-semibold text-xs text-foreground flex items-center gap-1.5">
+                        <CreditCard className="h-3.5 w-3.5 text-blue-500" />
+                        <span>Transaction Details / Remark:</span>
+                      </div>
+                      <div className="font-mono text-xs bg-muted/60 p-2.5 rounded-lg border border-border text-foreground break-all select-all">
+                        {viewRequest.remark}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2 text-xs text-muted-foreground">
@@ -474,10 +550,19 @@ export default function ARSDepositPage() {
                 
                 {viewRequest.status === "Pending" && (
                   <div className="flex gap-2">
-                    <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={() => { handleApprove(viewRequest); setViewRequest(null); }}>
+                    <Button 
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700" 
+                      disabled={!!processingId}
+                      onClick={() => { handleApprove(viewRequest); setViewRequest(null); }}
+                    >
                       Accept Deposit
                     </Button>
-                    <Button variant="destructive" className="flex-1" onClick={() => { setRejectRequest(viewRequest); setViewRequest(null); }}>
+                    <Button 
+                      variant="destructive" 
+                      className="flex-1" 
+                      disabled={!!processingId}
+                      onClick={() => { setRejectRequest(viewRequest); setViewRequest(null); }}
+                    >
                       Request Rejected
                     </Button>
                   </div>
@@ -486,13 +571,23 @@ export default function ARSDepositPage() {
               
               <div className="space-y-2">
                 <h3 className="font-semibold text-sm">Payment Proof Screenshot</h3>
-                <div className="aspect-[3/4] rounded-lg border border-border overflow-hidden bg-black flex items-center justify-center">
-                  <img 
-                    src={viewRequest.proofImage} 
-                    alt="Payment Proof" 
-                    className="max-w-full max-h-full object-contain"
-                    referrerPolicy="no-referrer"
-                  />
+                <div className="aspect-[3/4] rounded-lg border border-border overflow-hidden bg-muted/40 flex items-center justify-center p-4">
+                  {viewRequest.proofImage ? (
+                    <img 
+                      src={viewRequest.proofImage} 
+                      alt="Payment Proof" 
+                      className="max-w-full max-h-full object-contain rounded-md"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center p-6 space-y-2 text-muted-foreground">
+                      <CreditCard className="h-10 w-10 text-primary/40" />
+                      <div className="text-xs font-semibold text-foreground">Direct Card Gateway Deposit</div>
+                      <p className="text-[11px] leading-relaxed max-w-[200px]">
+                        Processed directly via Onramper widget. Admin verifies received crypto on merchant wallet before approval.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -519,8 +614,8 @@ export default function ARSDepositPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectRequest(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleReject} disabled={!rejectRemark.trim()}>
+            <Button variant="outline" disabled={!!processingId} onClick={() => setRejectRequest(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleReject} disabled={!rejectRemark.trim() || !!processingId}>
               Confirm Rejection
             </Button>
           </DialogFooter>

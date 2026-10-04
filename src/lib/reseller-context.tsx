@@ -1,15 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDbProducts } from "@/hooks/use-db-products";
 import type { Product } from "@/lib/types";
-import { ResellerContext, type ResellerProfile, type ResellerLoginResult, type StoreTheme, getLevelByDeposit } from "@/lib/reseller-context-hooks";
+import { ResellerContext, type ResellerProfile, type StoreTheme, getLevelByDeposit } from "@/lib/reseller-context-hooks";
+import { isNewResellerPromotionRuleActive } from "./vip-utils";
 import { supabase } from "./supabase";
 import { useFcmToken } from "@/hooks/use-fcm-token";
+import { resellerPath } from "@/lib/subdomain";
 
 interface CustomSettings {
   shopLogo?: string;
   shopHeroBanner?: string;
+  shopDescription?: string;
   storeTheme?: string;
   profilePicture?: string;
+  phone?: string;
   usdtAddress?: string;
   bankInfo?: {
     bankName: string;
@@ -64,6 +68,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
     let userChannel: RealtimeChannel | null = null;
     let selectionChannel: RealtimeChannel | null = null;
     let shopChannel: RealtimeChannel | null = null;
+    let ordersChannel: RealtimeChannel | null = null;
 
     // Safety fallback: Never stay stuck on loading indefinitely
     const timeoutId = setTimeout(() => {
@@ -73,12 +78,170 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
       }
     }, 15000);
 
+    let channelsSetupUserId: string | null = null;
+
+    const setupRealtimeChannels = (uid: string) => {
+      if (channelsSetupUserId === uid) return;
+      channelsSetupUserId = uid;
+
+      // Cleanup previous channels if they exist
+      if (profileChannel) supabase.removeChannel(profileChannel);
+      if (userChannel) supabase.removeChannel(userChannel);
+      if (selectionChannel) supabase.removeChannel(selectionChannel);
+      if (shopChannel) supabase.removeChannel(shopChannel);
+      if (ordersChannel) supabase.removeChannel(ordersChannel);
+
+      // Setup real-time listener for the reseller profile
+      profileChannel = supabase
+        .channel(`public:reseller_profiles:${uid}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'reseller_profiles', filter: `id=eq.${uid}` }, (payload) => {
+          const profileData = payload.new as any;
+          if (profileData && mounted) {
+            setReseller(prev => {
+              if (!prev) return null;
+              
+              let custom: CustomSettings = {};
+              try {
+                if (profileData.payment_method) {
+                  custom = JSON.parse(profileData.payment_method as string) as CustomSettings;
+                }
+              } catch (e) {
+                console.error("Error parsing payment_method:", e);
+              }
+
+              let bankInfoObj = { bankName: '', accountName: '', accountNumber: '' };
+              const rawBankInfo = custom.bankInfo;
+              if (rawBankInfo) {
+                try {
+                  bankInfoObj = typeof rawBankInfo === 'string' ? JSON.parse(rawBankInfo) : rawBankInfo;
+                } catch (e) {
+                  console.error("Error parsing bankInfo:", e);
+                }
+              }
+
+              const newTotalEarnings = Math.max(Number(profileData.total_earnings || 0), prev.totalEarnings || 0);
+
+              return {
+                ...prev,
+                resellerId: profileData.reseller_id || 0,
+                phone: custom.phone || profileData.phone || prev.phone || '',
+                profilePicture: custom.profilePicture || profileData.profile_picture || '',
+                shopName: profileData.shop_name || 'My Shop',
+                shopSlug: profileData.shop_slug || '',
+                shopLogo: custom.shopLogo || profileData.shop_logo || '',
+                shopHeroBanner: custom.shopHeroBanner || profileData.shop_hero_banner || '',
+                storeTheme: (custom.storeTheme as StoreTheme) || profileData.store_theme || 'minimal',
+                verified: profileData.verified || false,
+                balance: Number(profileData.balance || 0),
+                pendingBalance: Number(profileData.pending_balance || 0),
+                unpickedBalance: Number(profileData.unpicked_balance || 0),
+                totalEarnings: Number(newTotalEarnings.toFixed(2)),
+                usdtAddress: custom.usdtAddress || '',
+                bankInfo: bankInfoObj,
+              };
+            });
+          }
+        })
+        .subscribe();
+
+      // Setup real-time listener for orders to dynamically update collected profit and order counts
+      ordersChannel = supabase
+        .channel(`public:orders:reseller:${uid}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `reseller_id=eq.${uid}` }, async () => {
+          try {
+            const { data: updatedOrders } = await supabase
+              .from('orders')
+              .select('profit,profits,status')
+              .eq('reseller_id', uid);
+
+            if (updatedOrders && mounted) {
+              const completedProfit = updatedOrders
+                .filter(r => String(r.status || '').toLowerCase() === 'completed')
+                .reduce((sum, row) => sum + Number(row.profit ?? row.profits ?? 0), 0);
+
+              setReseller(prev => {
+                if (!prev) return null;
+                const bestTotal = Math.max(completedProfit, prev.totalEarnings || 0);
+                return {
+                  ...prev,
+                  totalOrders: updatedOrders.length,
+                  totalEarnings: Number(bestTotal.toFixed(2)),
+                };
+              });
+            }
+          } catch (err) {
+            console.warn('[RESELLER] Realtime order profit update error:', err);
+          }
+        })
+        .subscribe();
+
+      // Setup real-time listener for user data
+      userChannel = supabase
+        .channel(`public:users:${uid}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `id=eq.${uid}` }, (payload) => {
+          const userData = payload.new as any;
+          if (userData && mounted) {
+            setReseller(prev => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                firstName: userData.first_name || '',
+                lastName: userData.last_name || '',
+                email: userData.email || '',
+              };
+            });
+          }
+        })
+        .subscribe();
+
+      // Setup real-time listener for product selection
+      selectionChannel = supabase
+        .channel(`public:reseller_product_selection:${uid}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'reseller_product_selection', filter: `reseller_id=eq.${uid}` }, async () => {
+           const { data: selectionData } = await supabase
+             .from('reseller_product_selection')
+             .select('product_id')
+             .eq('reseller_id', uid);
+           
+           if (selectionData && mounted) {
+             const selectedProductIds = selectionData.map(d => d.product_id);
+             setReseller(prev => {
+               if (!prev) return null;
+               return { ...prev, selectedProductIds };
+             });
+           }
+        })
+        .subscribe();
+
+      // Setup real-time listener for retail_shops
+      shopChannel = supabase
+        .channel(`public:retail_shops:${uid}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'retail_shops', filter: `id=eq.${uid}` }, (payload) => {
+          const shopData = payload.new as Record<string, unknown>;
+          if (shopData && mounted) {
+            setReseller(prev => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                starRating: shopData.star_rating as number || 2.0,
+                creditScore: shopData.credit_score as number || 100,
+                isSuspended: shopData.is_suspended as boolean || false,
+                level: shopData.level as string || prev.level || "VIP-0",
+                productLimit: shopData.product_limit as number || 20,
+              };
+            });
+          }
+        })
+        .subscribe();
+    };
+
     const initializeResellerSession = async () => {
       try {
         const { data: { session: sbSession } } = await supabase.auth.getSession();
         const user = sbSession?.user;
         if (user && mounted) {
           currentUserRef.current = user.id;
+          setupRealtimeChannels(user.id);
           await fetchProfile(user.id, user.email || '');
         } else if (mounted) {
           console.log("[RESELLER] No session found on initial session check.");
@@ -95,8 +258,6 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
 
     initializeResellerSession();
 
-    let channelsSetupUserId: string | null = null;
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sbSession) => {
       console.log(`[RESELLER] onAuthStateChange event: ${event}, session: ${!!sbSession}`);
       if (event === 'INITIAL_SESSION') return; // Ignore initial to avoid race condition with getSession
@@ -104,137 +265,22 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
       const user = sbSession?.user;
       
       if (user) {
-        if (currentUserRef.current === user.id) return;
         currentUserRef.current = user.id;
+        setupRealtimeChannels(user.id);
         
         try {
           await fetchProfile(user.id, user.email || '');
         } catch (error) {
           console.error("[RESELLER] Failed to fetch profile inside onAuthStateChange", error);
         }
-        
-        if (!mounted) return;
-
-        if (channelsSetupUserId === user.id) return;
-        channelsSetupUserId = user.id;
-
-        // Cleanup previous channels if they exist
+      } else {
+        currentUserRef.current = null;
+        channelsSetupUserId = null;
         if (profileChannel) supabase.removeChannel(profileChannel);
         if (userChannel) supabase.removeChannel(userChannel);
         if (selectionChannel) supabase.removeChannel(selectionChannel);
         if (shopChannel) supabase.removeChannel(shopChannel);
-
-        // Setup real-time listener for the reseller profile
-        profileChannel = supabase
-          .channel(`public:reseller_profiles:${user.id}`)
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'reseller_profiles', filter: `id=eq.${user.id}` }, (payload) => {
-            const profileData = payload.new as any;
-            if (profileData && mounted) {
-              setReseller(prev => {
-                if (!prev) return null;
-                
-                let custom: CustomSettings = {};
-                try {
-                  if (profileData.payment_method) {
-                    custom = JSON.parse(profileData.payment_method as string) as CustomSettings;
-                  }
-                } catch (e) {
-                  console.error("Error parsing payment_method:", e);
-                }
-
-                let bankInfoObj = { bankName: '', accountName: '', accountNumber: '' };
-                const rawBankInfo = custom.bankInfo;
-                if (rawBankInfo) {
-                  try {
-                    bankInfoObj = typeof rawBankInfo === 'string' ? JSON.parse(rawBankInfo) : rawBankInfo;
-                  } catch (e) {
-                    console.error("Error parsing bankInfo:", e);
-                  }
-                }
-
-                return {
-                  ...prev,
-                  resellerId: profileData.reseller_id || 0,
-                  phone: profileData.phone || '',
-                  profilePicture: custom.profilePicture || profileData.profile_picture || '',
-                  shopName: profileData.shop_name || 'My Shop',
-                  shopSlug: profileData.shop_slug || '',
-                  shopLogo: custom.shopLogo || profileData.shop_logo || '',
-                  shopHeroBanner: custom.shopHeroBanner || profileData.shop_hero_banner || '',
-                  storeTheme: (custom.storeTheme as StoreTheme) || profileData.store_theme || 'minimal',
-                  verified: profileData.verified || false,
-                  balance: Number(profileData.balance || 0),
-                  pendingBalance: Number(profileData.pending_balance || 0),
-                  unpickedBalance: Number(profileData.unpicked_balance || 0),
-                  totalEarnings: Number(profileData.total_earnings || 0),
-                  usdtAddress: custom.usdtAddress || '',
-                  bankInfo: bankInfoObj,
-                };
-              });
-            }
-          })
-          .subscribe();
-
-        // Setup real-time listener for user data
-        userChannel = supabase
-          .channel(`public:users:${user.id}`)
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, (payload) => {
-            const userData = payload.new as any;
-            if (userData && mounted) {
-              setReseller(prev => {
-                if (!prev) return null;
-                return {
-                  ...prev,
-                  firstName: userData.first_name || '',
-                  lastName: userData.last_name || '',
-                  email: userData.email || '',
-                };
-              });
-            }
-          })
-          .subscribe();
-
-        // Setup real-time listener for product selection
-        selectionChannel = supabase
-          .channel(`public:reseller_product_selection:${user.id}`)
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'reseller_product_selection', filter: `reseller_id=eq.${user.id}` }, async () => {
-             const { data: selectionData } = await supabase
-               .from('reseller_product_selection')
-               .select('product_id')
-               .eq('reseller_id', user.id);
-             
-             if (selectionData && mounted) {
-               const selectedProductIds = selectionData.map(d => d.product_id);
-               setReseller(prev => {
-                 if (!prev) return null;
-                 return { ...prev, selectedProductIds };
-               });
-             }
-          })
-          .subscribe();
-
-        // Setup real-time listener for retail_shops
-        shopChannel = supabase
-          .channel(`public:retail_shops:${user.id}`)
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'retail_shops', filter: `id=eq.${user.id}` }, (payload) => {
-            const shopData = payload.new as Record<string, unknown>;
-            if (shopData && mounted) {
-              setReseller(prev => {
-                if (!prev) return null;
-                return {
-                  ...prev,
-                  starRating: shopData.star_rating as number || 2.0,
-                  creditScore: shopData.credit_score as number || 100,
-                  isSuspended: shopData.is_suspended as boolean || false,
-                  level: shopData.level as string || prev.level || "VIP-0",
-                  productLimit: shopData.product_limit as number || 20,
-                };
-              });
-            }
-          })
-          .subscribe();
-      } else {
-        currentUserRef.current = null;
+        if (ordersChannel) supabase.removeChannel(ordersChannel);
         if (mounted) {
           setReseller(null);
           setLoading(false);
@@ -250,6 +296,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
       if (userChannel) supabase.removeChannel(userChannel);
       if (selectionChannel) supabase.removeChannel(selectionChannel);
       if (shopChannel) supabase.removeChannel(shopChannel);
+      if (ordersChannel) supabase.removeChannel(ordersChannel);
     };
   }, []);
 
@@ -266,134 +313,235 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
     const fetchPromise = (async (): Promise<boolean> => {
       console.log(`[RESELLER_CONTEXT] Fetching profile for UID: ${userId}, Email: ${email}`);
       try {
-        // 1. Fetch user role
-        console.log(`[RESELLER_CONTEXT] Querying users table for UID: ${userId}...`);
-        
-        const timeoutPromise = new Promise<{data: null, error: { message: string, code?: string }}>((resolve) => {
-          setTimeout(() => resolve({data: null, error: {message: "Supabase query timed out after 15s"}}), 15000);
+        console.log(`[RESELLER_CONTEXT] Initiating parallel data load for UID: ${userId}...`);
+
+        const timeoutPromise = new Promise<{ data: null; error: { message: string; code?: string } }>((resolve) => {
+          setTimeout(() => resolve({ data: null, error: { message: "Supabase query timed out after 15s" } }), 15000);
         });
 
-        const { data: userData, error: userError } = await Promise.race([
-          supabase.from('users').select('*').eq('id', userId).single(),
-          timeoutPromise
-        ]) as { data: any, error: { message: string, code?: string } | null };
-        
-        console.log(`[RESELLER_CONTEXT] Query users table complete. Error: ${userError?.message || 'None'}`);
-      
-      if (userError || !userData) {
-        console.warn(`[RESELLER_CONTEXT] 'users' document NOT FOUND for UID: ${userId}`);
-        setReseller(null);
-        setLoading(false);
-        return false;
-      }
-      
-      console.log(`[RESELLER_CONTEXT] User data found. Role: ${userData.role}`);
-      if (!['reseller', 'customer', 'owner', 'admin'].includes(userData.role)) {
-        console.warn(`[RESELLER_CONTEXT] Unauthorized role: ${userData.role}`);
-        setReseller(null);
-        setLoading(false);
-        return false;
-      }
+        // Parallelize all 5 database queries at once instead of sequential awaits
+        const [userRes, profileRes, shopRes, selectionRes, ordersRes] = await Promise.all([
+          Promise.race([
+            supabase.from('users').select('*').eq('id', userId).single(),
+            timeoutPromise
+          ]) as Promise<{ data: any; error: { message: string; code?: string } | null }>,
+          supabase.from('reseller_profiles').select('*').eq('id', userId).maybeSingle(),
+          supabase.from('retail_shops').select('*').eq('id', userId).maybeSingle(),
+          supabase.from('reseller_product_selection').select('product_id').eq('reseller_id', userId),
+          supabase.from('orders').select('profit,profits,status').eq('reseller_id', userId),
+        ]);
 
-      // 2. Fetch reseller profile
-      console.log(`[RESELLER_CONTEXT] Querying reseller_profiles table...`);
-      const { data: profileData, error: profileError } = await supabase
-        .from('reseller_profiles')
-        .select('*')
-        .eq('id', userId)
-        // maybeSingle: admins/staff have no reseller profile, which is expected
-        // and should not surface as a 406 error on every admin page.
-        .maybeSingle();
-      
-      console.log(`[RESELLER_CONTEXT] Query reseller_profiles complete. Error: ${profileError?.message || 'None'}`);
-      
-      if (profileError || !profileData) {
-        console.warn(`[RESELLER_CONTEXT] 'reseller_profiles' document NOT FOUND for UID: ${userId}`);
-        setReseller(null);
-        setLoading(false);
-        return false;
-      }
+        let userData = userRes.data;
+        let profileData = profileRes.data;
+        let currentShopData = shopRes.data;
 
-      // Auto-populate missing shop_slug
-      let activeShopSlug = profileData.shop_slug || '';
-      if (!activeShopSlug) {
-        const baseName = profileData.shop_name || 'my-shop';
-        activeShopSlug = baseName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-        if (!activeShopSlug) activeShopSlug = 'my-shop';
-        activeShopSlug = activeShopSlug + '-' + Math.random().toString(36).substring(2, 6);
-        
-        console.log(`[RESELLER_CONTEXT] Auto-generating missing shop_slug for reseller: ${activeShopSlug}`);
-        
-        // Save to DB in background
-        supabase.from('reseller_profiles').update({ shop_slug: activeShopSlug }).eq('id', userId)
-          .then(({ error }) => {
-            if (error) console.error("Failed to auto-update reseller_profiles with shop_slug:", error);
-          });
-        supabase.from('retail_shops').upsert({ id: userId, shop_slug: activeShopSlug }, { onConflict: 'id' })
-          .then(({ error }) => {
-            if (error) console.error("Failed to auto-update retail_shops with shop_slug:", error);
-          });
-      }
+        // If user or reseller profile not found, check if this is an authenticated OAuth user who needs first-time setup
+        if (!userData || !profileData) {
+          console.log(`[RESELLER_CONTEXT] User or profile not found for UID: ${userId}, checking for OAuth auto-provisioning...`);
+          try {
+            const { data: authUserData } = await supabase.auth.getUser();
+            const authUser = authUserData?.user;
 
-      // 3. Fetch retail shop
-      console.log(`[RESELLER_CONTEXT] Querying retail_shops table...`);
-      const { data: retailShopData, error: shopError } = await supabase
-        .from('retail_shops')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+            if (authUser && authUser.id === userId) {
+              console.log(`[RESELLER_CONTEXT] Authenticated user confirmed for UID: ${userId}. Auto-provisioning reseller store...`);
+              const meta = (authUser.user_metadata || {}) as Record<string, any>;
+              const fullName = (meta.full_name || meta.name || "").trim();
+              let firstName = (meta.first_name || meta.given_name || "").trim();
+              let lastName = (meta.last_name || meta.family_name || "").trim();
 
-      console.log(`[RESELLER_CONTEXT] Query retail_shops complete.`);
+              if (!firstName && fullName) {
+                const parts = fullName.split(" ");
+                firstName = parts[0] || "Reseller";
+                lastName = parts.slice(1).join(" ") || "Partner";
+              }
+              if (!firstName) firstName = (authUser.email || email || "").split("@")[0] || "Reseller";
+              if (!lastName) lastName = "Merchant";
 
-      // Auto-create missing retail_shop if it doesn't exist
-      let currentShopData = retailShopData;
-      if (!retailShopData) {
-        console.log(`[RESELLER_CONTEXT] Retail shop missing for ${userId}, auto-creating...`);
-        const newShopData = {
-          id: userId,
-          reseller_id: profileData.reseller_id || 0,
-          shop_name: profileData.shop_name || 'My Store',
-          shop_slug: activeShopSlug,
-          star_rating: 2.0,
-          credit_score: 100,
-          status: 'active',
-          created_at: new Date().toISOString()
-        };
-        const { data: createdShop } = await supabase.from('retail_shops').insert(newShopData).select().maybeSingle();
-        currentShopData = createdShop;
-      } else if (!retailShopData.shop_slug) {
-        // If shop exists but lacks shop_slug
-        await supabase.from('retail_shops').update({ shop_slug: activeShopSlug }).eq('id', userId);
-        if (currentShopData) {
+              let pendingRef: string | null = null;
+              if (typeof window !== "undefined") {
+                pendingRef = localStorage.getItem("pending_reseller_ref");
+                localStorage.removeItem("pending_reseller_ref");
+                localStorage.removeItem("pending_auth_portal");
+              }
+
+              const autoRegRes = await fetch("/api/register-reseller", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  firstName,
+                  lastName,
+                  emailOrPhone: authUser.email || email,
+                  shopName: `${firstName}'s Store`,
+                  referralCode: pendingRef || undefined,
+                  uid: userId,
+                }),
+              });
+
+              if (autoRegRes.ok) {
+                console.log(`[RESELLER_CONTEXT] Auto-registration succeeded for Google user UID: ${userId}`);
+                const [newUserRes, newProfileRes, newShopRes] = await Promise.all([
+                  supabase.from("users").select("*").eq("id", userId).maybeSingle(),
+                  supabase.from("reseller_profiles").select("*").eq("id", userId).maybeSingle(),
+                  supabase.from("retail_shops").select("*").eq("id", userId).maybeSingle(),
+                ]);
+                userData = newUserRes.data;
+                profileData = newProfileRes.data;
+                currentShopData = newShopRes.data;
+
+                const avatarUrl = meta.avatar_url || meta.picture;
+                if (avatarUrl && profileData) {
+                  supabase.from("reseller_profiles").update({ profile_picture: avatarUrl }).eq("id", userId).then(() => {}, () => {});
+                  profileData.profile_picture = avatarUrl;
+                }
+              }
+            }
+          } catch (autoErr) {
+            console.error("[RESELLER_CONTEXT] Error during OAuth auto-provisioning:", autoErr);
+          }
+        }
+
+        if (!userData) {
+          console.warn(`[RESELLER_CONTEXT] 'users' document NOT FOUND for UID: ${userId}`);
+          setReseller(null);
+          setLoading(false);
+          return false;
+        }
+
+        if (!['reseller', 'customer', 'owner', 'admin'].includes(userData.role)) {
+          console.warn(`[RESELLER_CONTEXT] Unauthorized role: ${userData.role}`);
+          setReseller(null);
+          setLoading(false);
+          return false;
+        }
+
+        if (!profileData) {
+          console.warn(`[RESELLER_CONTEXT] 'reseller_profiles' document NOT FOUND for UID: ${userId}`);
+          setReseller(null);
+          setLoading(false);
+          return false;
+        }
+
+        // Auto-populate missing shop_slug if not present
+        let activeShopSlug = profileData.shop_slug || '';
+        if (!activeShopSlug) {
+          const baseName = profileData.shop_name || 'my-shop';
+          activeShopSlug = baseName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          if (!activeShopSlug) activeShopSlug = 'my-shop';
+          activeShopSlug = activeShopSlug + '-' + Math.random().toString(36).substring(2, 6);
+          
+          console.log(`[RESELLER_CONTEXT] Auto-generating missing shop_slug for reseller: ${activeShopSlug}`);
+          
+          // Persist to DB in background without blocking
+          supabase.from('reseller_profiles').update({ shop_slug: activeShopSlug }).eq('id', userId)
+            .then(({ error }) => {
+              if (error) console.error("Failed to auto-update reseller_profiles with shop_slug:", error);
+            });
+          supabase.from('retail_shops').upsert({ id: userId, shop_slug: activeShopSlug }, { onConflict: 'id' })
+            .then(({ error }) => {
+              if (error) console.error("Failed to auto-update retail_shops with shop_slug:", error);
+            });
+        }
+
+        // Retail shop handling
+        if (!currentShopData) {
+          console.log(`[RESELLER_CONTEXT] Retail shop missing for ${userId}, auto-creating...`);
+          const newShopData = {
+            id: userId,
+            reseller_id: profileData.reseller_id || 0,
+            shop_name: profileData.shop_name || 'My Store',
+            shop_slug: activeShopSlug,
+            star_rating: 2.0,
+            credit_score: 100,
+            status: 'active',
+            created_at: new Date().toISOString()
+          };
+          const { data: createdShop } = await supabase.from('retail_shops').insert(newShopData).select().maybeSingle();
+          currentShopData = createdShop;
+        } else if (!currentShopData.shop_slug) {
+          // Fire and forget update if shop exists but lacks slug
+          supabase.from('retail_shops').update({ shop_slug: activeShopSlug }).eq('id', userId)
+            .then(({ error }) => {
+              if (error) console.error("Failed to auto-update retail_shops with shop_slug:", error);
+            });
           currentShopData.shop_slug = activeShopSlug;
         }
-      }
-      
-      const totalDeposits = Number(profileData.total_deposits || 0);
-      const totalWithdrawals = Number(profileData.total_withdrawals || 0);
-      const netDeposits = totalDeposits - totalWithdrawals;
-      const currentLevelLabel = (currentShopData?.level as string) || "VIP-0";
-      const levelInfo = getLevelByDeposit(netDeposits, currentLevelLabel);
+        
+        const totalDeposits = Number(profileData.total_deposits || 0);
+        const totalWithdrawals = Number(profileData.total_withdrawals || 0);
+        const netDeposits = totalDeposits - totalWithdrawals;
+        const registrationDate = profileData.registration_date || profileData.created_at || userData.created_at || (currentShopData as any)?.created_at;
+        const currentLevelLabel = (currentShopData?.level as string) || (profileData?.level as string) || "VIP-0";
+        const levelInfo = getLevelByDeposit(netDeposits, currentLevelLabel, registrationDate);
 
-      // 4. Fetch selected products
-      console.log(`[RESELLER_CONTEXT] Querying reseller_product_selection table...`);
-      const { data: selectionData } = await supabase
-        .from('reseller_product_selection')
-        .select('product_id')
-        .eq('reseller_id', userId);
-      
-      console.log(`[RESELLER_CONTEXT] Query selection complete.`);
-      const selectedProductIds = selectionData ? selectionData.map((d: Record<string, unknown>) => String(d.product_id)) : [];
+        // Auto-heal dirty database entries ONLY for NEWLY registered resellers (registered on/after effective date)
+        // Existing resellers registered before the cutoff date keep their existing VIP 1 level intact
+        const isNewReseller = isNewResellerPromotionRuleActive(registrationDate);
+        if (isNewReseller && netDeposits < 1000 && ((profileData.level === 'VIP 1' || profileData.level === 'VIP-1' || profileData.level === '1') || (currentShopData?.level === 'VIP 1' || currentShopData?.level === 'VIP-1' || currentShopData?.level === '1'))) {
+          supabase.from('reseller_profiles').update({ level: 'VIP-0', product_limit: 20 }).eq('id', userId).then(() => {}, () => {});
+          supabase.from('retail_shops').update({ level: 'VIP-0', product_limit: 20 }).eq('id', userId).then(() => {}, () => {});
+        }
 
-      // Compute accumulated profit from real order history so the dashboard Total Profit card matches actual earnings.
-      const { data: orderRows } = await supabase
-        .from('orders')
-        .select('profit,profits,status')
-        .eq('reseller_id', userId);
-      const computedTotalEarnings = (orderRows || []).reduce((sum, row) => {
-        if (row.status === 'Cancelled') return sum;
-        return sum + Number(row.profit ?? row.profits ?? 0);
-      }, 0);
+        // Product selection
+        const selectionData = selectionRes.data;
+        const selectedProductIds = selectionData ? selectionData.map((d: Record<string, unknown>) => String(d.product_id)) : [];
+
+        // Compute collected profit from completed orders & active order balances
+        const orderRows = ordersRes.data || [];
+        const orderCount = orderRows.length || Number(profileData.total_orders || 0);
+        
+        const completedProfit = orderRows
+          .filter((r: Record<string, unknown>) => String(r.status || '').toLowerCase() === 'completed')
+          .reduce((sum: number, row: Record<string, unknown>) => sum + Number(row.profit ?? row.profits ?? 0), 0);
+
+        const ongoingAmount = orderRows
+          .filter((r: Record<string, unknown>) => {
+            const st = String(r.status || '').toLowerCase();
+            return st === 'ongoing' || st === 'shipped' || st === 'in_progress';
+          })
+          .reduce((sum: number, row: Record<string, unknown>) => sum + Number(row.total_amount ?? row.total_cost ?? 0), 0);
+
+        const pendingAmount = orderRows
+          .filter((r: Record<string, unknown>) => {
+            const st = String(r.status || '').toLowerCase();
+            return st === 'pending' || st === 'processing';
+          })
+          .reduce((sum: number, row: Record<string, unknown>) => sum + Number(row.total_amount ?? row.total_cost ?? 0), 0);
+
+        const profileTotalEarnings = Number(profileData.total_earnings || 0);
+        const resolvedTotalEarnings = Number(Math.max(profileTotalEarnings, completedProfit).toFixed(2));
+
+        const profilePendingBalance = Number(profileData.pending_balance || 0);
+        // If there are orders and 0 ongoing, or if ongoing sum differs, use dynamically verified ongoing amount
+        const resolvedPendingBalance = orderRows.length === 0 && profilePendingBalance > 0
+          ? 0
+          : (orderRows.length > 0 ? ongoingAmount : profilePendingBalance);
+
+        const profileUnpickedBalance = Number(profileData.unpicked_balance || 0);
+        const resolvedUnpickedBalance = orderRows.length === 0 && profileUnpickedBalance > 0
+          ? 0
+          : (orderRows.length > 0 ? pendingAmount : profileUnpickedBalance);
+
+        // Auto-synchronize discrepancies back to DB in background
+        const dbSyncUpdates: Record<string, unknown> = {};
+        if (completedProfit > profileTotalEarnings) {
+          dbSyncUpdates.total_earnings = resolvedTotalEarnings;
+          dbSyncUpdates.total_orders = orderCount;
+        }
+        if (Math.abs(profilePendingBalance - resolvedPendingBalance) > 0.01) {
+          dbSyncUpdates.pending_balance = resolvedPendingBalance;
+        }
+        if (Math.abs(profileUnpickedBalance - resolvedUnpickedBalance) > 0.01 && orderRows.length === 0) {
+          dbSyncUpdates.unpicked_balance = resolvedUnpickedBalance;
+        }
+
+        if (Object.keys(dbSyncUpdates).length > 0) {
+          dbSyncUpdates.updated_at = new Date().toISOString();
+          supabase
+            .from('reseller_profiles')
+            .update(dbSyncUpdates)
+            .eq('id', userId)
+            .then(() => {}, (e) => console.warn("[RESELLER_CONTEXT] Background DB balance sync failed:", e));
+        }
 
       let custom: CustomSettings = {};
       try {
@@ -422,19 +570,22 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         firstName: userData.first_name || '',
         lastName: userData.last_name || '',
         email: email,
-        phone: userData.phone || profileData.phone || '',
+        phone: custom.phone || (userData as any)?.phone || (profileData as any)?.phone || '',
         profilePicture: custom.profilePicture || profileData.profile_picture || '',
         shopName: profileData.shop_name,
         shopSlug: activeShopSlug,
         shopLogo: custom.shopLogo || profileData.shop_logo || '',
         shopHeroBanner: custom.shopHeroBanner || profileData.shop_hero_banner || '',
+        shopDescription: custom.shopDescription || profileData.shop_description || '',
         storeTheme: (custom.storeTheme as StoreTheme) || profileData.store_theme || 'minimal',
         verified: profileData.verified,
         balance: Number(profileData.balance || 0),
-        pendingBalance: Number(profileData.pending_balance || 0),
-        unpickedBalance: Number(profileData.unpicked_balance || 0),
-        totalEarnings: computedTotalEarnings,
+        pendingBalance: resolvedPendingBalance,
+        unpickedBalance: resolvedUnpickedBalance,
+        totalEarnings: resolvedTotalEarnings,
         totalDeposits: totalDeposits,
+        totalOrders: orderCount,
+        joinedAt: registrationDate || new Date().toISOString(),
         referralCode: profileData.referral_code,
         referredByStaffId: profileData.referred_by_staff_id,
         memberOfAdminId: profileData.member_of_admin_id,
@@ -470,39 +621,32 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
     return fetchPromise;
   };
 
-  const login = async (email: string, password: string): Promise<ResellerLoginResult> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     const normalizedEmail = email.toLowerCase().trim();
+    console.log(`[RESELLER_CONTEXT] Attempting login for: ${normalizedEmail}`);
     try {
       setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
-      if (error) {
-        setLoading(false);
-        const message = error.message || "";
-        if (/email not confirmed/i.test(message)) {
-          return { success: false, reason: "email-unconfirmed", message: "Your email address is not confirmed yet. Please contact support." };
-        }
-        return { success: false, reason: "invalid-credentials", message };
-      }
-
+      if (error) throw error;
+      console.log(`[RESELLER_CONTEXT] Supabase Auth login successful for UID: ${data.user?.id}`);
+      
       if (data.user) {
         currentUserRef.current = data.user.id;
         const successProfile = await fetchProfile(data.user.id, data.user.email || '');
         if (!successProfile) {
+          console.warn("[RESELLER_CONTEXT] Failed to load reseller profile, logging out");
           await supabase.auth.signOut();
           currentUserRef.current = null;
           setReseller(null);
           setLoading(false);
-          return {
-            success: false,
-            reason: "no-reseller-profile",
-            message: "This account exists but is not registered as a reseller. Please register on the reseller portal or contact support.",
-          };
+          return false;
         }
       }
-      return { success: true };
+      return true;
     } catch (e: unknown) {
+      console.error("[RESELLER_CONTEXT] Login error details:", (e as Error).message);
       setLoading(false);
-      return { success: false, reason: "unknown", message: (e as Error).message };
+      return false;
     }
   };
 
@@ -551,6 +695,36 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async (referralCode?: string): Promise<{ error?: string }> => {
+    try {
+      if (typeof window !== "undefined") {
+        if (referralCode) {
+          localStorage.setItem("pending_reseller_ref", referralCode.trim());
+        }
+        localStorage.setItem("pending_auth_portal", "reseller");
+      }
+
+      const redirectUrl = window.location.origin + resellerPath("/reseller/dashboard");
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: "offline",
+            prompt: "select_account",
+          },
+        },
+      });
+
+      if (error) throw error;
+      return {};
+    } catch (err: any) {
+      console.error("[RESELLER_CONTEXT] Google Sign-In error:", err);
+      return { error: err.message || "Failed to initialize Google Sign-In" };
+    }
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
     setReseller(null);
@@ -570,11 +744,13 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
       const userUpdates: Record<string, unknown> = {};
       const shopUpdates: Record<string, unknown> = {};
 
-      if (updates.firstName !== undefined) userUpdates.first_name = updates.firstName;
-      if (updates.lastName !== undefined) userUpdates.last_name = updates.lastName;
-      if (updates.phone !== undefined) {
-        userUpdates.phone = updates.phone;
-        profileUpdates.phone = updates.phone;
+      if (updates.firstName !== undefined) {
+        userUpdates.first_name = updates.firstName;
+        profileUpdates.first_name = updates.firstName;
+      }
+      if (updates.lastName !== undefined) {
+        userUpdates.last_name = updates.lastName;
+        profileUpdates.last_name = updates.lastName;
       }
 
       let generatedSlug: string | undefined;
@@ -587,44 +763,73 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         generatedSlug = slug;
       }
 
-      // Set native columns for reseller_profiles
-      if (updates.shopLogo !== undefined) profileUpdates.shop_logo = updates.shopLogo;
-      if (updates.shopHeroBanner !== undefined) profileUpdates.shop_hero_banner = updates.shopHeroBanner;
-      if (updates.storeTheme !== undefined) profileUpdates.store_theme = updates.storeTheme;
-      if (updates.profilePicture !== undefined) profileUpdates.profile_picture = updates.profilePicture;
-      if (updates.usdtAddress !== undefined || updates.bankInfo !== undefined) {
-        let custom: Record<string, unknown> = {};
-        if ((reseller as any)?.payment_method) {
-          try { custom = JSON.parse((reseller as any).payment_method as string); } catch(e) { /* ignore */ }
-        }
-        if (updates.usdtAddress !== undefined) custom.usdtAddress = updates.usdtAddress;
-        if (updates.bankInfo !== undefined) custom.bankInfo = updates.bankInfo;
+      // Prepare custom settings stored in payment_method JSON
+      let custom: CustomSettings = {};
+      if ((reseller as any)?.payment_method) {
+        try {
+          custom = typeof (reseller as any).payment_method === 'string'
+            ? JSON.parse((reseller as any).payment_method)
+            : (reseller as any).payment_method;
+        } catch(e) { /* ignore */ }
+      }
+
+      // Preserve existing values from current reseller state
+      if (reseller.shopLogo && !custom.shopLogo) custom.shopLogo = reseller.shopLogo;
+      if (reseller.shopHeroBanner && !custom.shopHeroBanner) custom.shopHeroBanner = reseller.shopHeroBanner;
+      if (reseller.storeTheme && !custom.storeTheme) custom.storeTheme = reseller.storeTheme;
+      if (reseller.profilePicture && !custom.profilePicture) custom.profilePicture = reseller.profilePicture;
+      if (reseller.phone && !custom.phone) custom.phone = reseller.phone;
+      if (reseller.usdtAddress && !custom.usdtAddress) custom.usdtAddress = reseller.usdtAddress;
+      if (reseller.bankInfo && !custom.bankInfo) custom.bankInfo = reseller.bankInfo;
+
+      let customChanged = false;
+      if (updates.shopLogo !== undefined) { custom.shopLogo = updates.shopLogo; customChanged = true; }
+      if (updates.shopHeroBanner !== undefined) { custom.shopHeroBanner = updates.shopHeroBanner; customChanged = true; }
+      if (updates.storeTheme !== undefined) { custom.storeTheme = updates.storeTheme; customChanged = true; }
+      if (updates.profilePicture !== undefined) { custom.profilePicture = updates.profilePicture; customChanged = true; }
+      if (updates.phone !== undefined) { custom.phone = updates.phone; customChanged = true; }
+      if (updates.usdtAddress !== undefined) { custom.usdtAddress = updates.usdtAddress; customChanged = true; }
+      if (updates.bankInfo !== undefined) { custom.bankInfo = updates.bankInfo; customChanged = true; }
+
+      if (customChanged) {
         profileUpdates.payment_method = JSON.stringify(custom);
       }
 
       // Synchronize updates including the generated shop slug into the component state
-      const nextResellerState = { ...updates };
+      const nextResellerState: Partial<ResellerProfile> = {
+        ...updates,
+        phone: custom.phone !== undefined ? custom.phone : (updates.phone !== undefined ? updates.phone : (reseller.phone || '')),
+        ...(customChanged ? {
+          shopLogo: custom.shopLogo || '',
+          shopHeroBanner: custom.shopHeroBanner || '',
+          storeTheme: (custom.storeTheme as StoreTheme) || 'minimal',
+          profilePicture: custom.profilePicture || '',
+          phone: custom.phone || '',
+          usdtAddress: custom.usdtAddress || '',
+          bankInfo: custom.bankInfo || { bankName: '', accountName: '', accountNumber: '' },
+        } : {}),
+      };
       if (generatedSlug) {
         nextResellerState.shopSlug = generatedSlug;
       }
+      (nextResellerState as any).payment_method = JSON.stringify(custom);
       setReseller(prev => prev ? { ...prev, ...nextResellerState } : null);
 
       if (Object.keys(profileUpdates).length > 0) {
-        const { error } = await supabase.from('reseller_profiles').update(profileUpdates).eq('id', reseller.id);
-        if (error) throw error;
+        const { error: pErr } = await supabase.from('reseller_profiles').update(profileUpdates).eq('id', reseller.id);
+        if (pErr) console.error("[RESELLER_CONTEXT] Error updating reseller_profiles:", pErr);
       }
       if (Object.keys(userUpdates).length > 0) {
-        const { error } = await supabase.from('users').update(userUpdates).eq('id', reseller.id);
-        if (error) throw error;
+        const { error: uErr } = await supabase.from('users').update(userUpdates).eq('id', reseller.id);
+        if (uErr) console.error("[RESELLER_CONTEXT] Error updating users:", uErr);
       }
       if (Object.keys(shopUpdates).length > 0) {
-        const { error } = await supabase.from('retail_shops').upsert({ id: reseller.id, ...shopUpdates }, { onConflict: 'id' });
-        if (error) throw error;
+        const { error: sErr } = await supabase.from('retail_shops').upsert({ id: reseller.id, ...shopUpdates }, { onConflict: 'id' });
+        if (sErr) console.error("[RESELLER_CONTEXT] Error updating retail_shops:", sErr);
       }
 
     } catch (e) {
       console.error("[RESELLER_CONTEXT] Error updating profile:", e);
-      throw e;
     }
   };
 
@@ -760,11 +965,12 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         firstName: shopData.first_name || '',
         lastName: shopData.last_name || '',
         email: shopData.email || '',
-        phone: shopData.phone || '',
+        phone: custom.phone || (shopData.phone as string) || '',
         shopName: shopData.shop_name || 'My Shop',
         shopSlug: shopData.shop_slug || userId,
         shopLogo: custom.shopLogo || shopData.shop_logo || '',
         shopHeroBanner: custom.shopHeroBanner || shopData.shop_hero_banner || '',
+        shopDescription: custom.shopDescription || (shopData.shop_description as string) || '',
         storeTheme: (custom.storeTheme as StoreTheme) || shopData.store_theme || 'minimal',
         isSuspended: shopData.is_suspended || false,
         starRating: shopData.star_rating || 2.0,
@@ -789,7 +995,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ResellerContext.Provider value={{ reseller, loading, login, register, logout, updateProfile, changePassword, toggleProduct, getMyProducts, getResellerBySlug, fetchResellerBySlug, fetchResellerByName, refreshProfile }}>
+    <ResellerContext.Provider value={{ reseller, loading, login, register, signInWithGoogle, logout, updateProfile, changePassword, toggleProduct, getMyProducts, getResellerBySlug, fetchResellerBySlug, fetchResellerByName, refreshProfile }}>
       {children}
     </ResellerContext.Provider>
   );

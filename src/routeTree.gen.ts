@@ -81,7 +81,6 @@ import { Route as ApiAdminDeleteResellerRouteImport } from './routes/api/admin/d
 import { Route as ApiAdminDeleteStaffRouteImport } from './routes/api/admin/delete-staff'
 import { Route as ApiAdminResetResellerPasswordRouteImport } from './routes/api/admin/reset-reseller-password'
 import { Route as ApiAdminVerifyAllRouteImport } from './routes/api/admin/verify-all'
-import { Route as ResellerProfileIndexRouteImport } from './routes/reseller.profile.index'
 import { Route as ResellerProfileCustomizeRouteImport } from './routes/reseller.profile.customize'
 import { Route as ApipublicResellerRequestResetRouteImport } from './routes/api/(public)/reseller/request-reset'
 
@@ -450,11 +449,6 @@ const ApiAdminVerifyAllRoute = ApiAdminVerifyAllRouteImport.update({
   path: '/api/admin/verify-all',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResellerProfileIndexRoute = ResellerProfileIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ResellerProfileRoute,
-} as any)
 const ResellerProfileCustomizeRoute =
   ResellerProfileCustomizeRouteImport.update({
     id: '/customize',
@@ -542,7 +536,6 @@ export interface FileRoutesByFullPath {
   '/api/admin/reset-reseller-password': typeof ApiAdminResetResellerPasswordRoute
   '/api/admin/verify-all': typeof ApiAdminVerifyAllRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
-  '/reseller/profile/': typeof ResellerProfileIndexRoute
   '/api/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
 export interface FileRoutesByTo {
@@ -585,6 +578,7 @@ export interface FileRoutesByTo {
   '/reseller/login': typeof ResellerLoginRoute
   '/reseller/messages': typeof ResellerMessagesRoute
   '/reseller/orders': typeof ResellerOrdersRoute
+  '/reseller/profile': typeof ResellerProfileRouteWithChildren
   '/reseller/register': typeof ResellerRegisterRoute
   '/reseller/share-target': typeof ResellerShareTargetRoute
   '/reseller/shop': typeof ResellerShopRoute
@@ -618,7 +612,6 @@ export interface FileRoutesByTo {
   '/api/admin/reset-reseller-password': typeof ApiAdminResetResellerPasswordRoute
   '/api/admin/verify-all': typeof ApiAdminVerifyAllRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
-  '/reseller/profile': typeof ResellerProfileIndexRoute
   '/api/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
 export interface FileRoutesById {
@@ -696,7 +689,6 @@ export interface FileRoutesById {
   '/api/admin/reset-reseller-password': typeof ApiAdminResetResellerPasswordRoute
   '/api/admin/verify-all': typeof ApiAdminVerifyAllRoute
   '/reseller/profile/customize': typeof ResellerProfileCustomizeRoute
-  '/reseller/profile/': typeof ResellerProfileIndexRoute
   '/api/(public)/reseller/request-reset': typeof ApipublicResellerRequestResetRoute
 }
 export interface FileRouteTypes {
@@ -775,7 +767,6 @@ export interface FileRouteTypes {
     | '/api/admin/reset-reseller-password'
     | '/api/admin/verify-all'
     | '/reseller/profile/customize'
-    | '/reseller/profile/'
     | '/api/reseller/request-reset'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -818,6 +809,7 @@ export interface FileRouteTypes {
     | '/reseller/login'
     | '/reseller/messages'
     | '/reseller/orders'
+    | '/reseller/profile'
     | '/reseller/register'
     | '/reseller/share-target'
     | '/reseller/shop'
@@ -851,7 +843,6 @@ export interface FileRouteTypes {
     | '/api/admin/reset-reseller-password'
     | '/api/admin/verify-all'
     | '/reseller/profile/customize'
-    | '/reseller/profile'
     | '/api/reseller/request-reset'
   id:
     | '__root__'
@@ -928,7 +919,6 @@ export interface FileRouteTypes {
     | '/api/admin/reset-reseller-password'
     | '/api/admin/verify-all'
     | '/reseller/profile/customize'
-    | '/reseller/profile/'
     | '/api/(public)/reseller/request-reset'
   fileRoutesById: FileRoutesById
 }
@@ -1511,13 +1501,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminVerifyAllRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reseller/profile/': {
-      id: '/reseller/profile/'
-      path: '/'
-      fullPath: '/reseller/profile/'
-      preLoaderRoute: typeof ResellerProfileIndexRouteImport
-      parentRoute: typeof ResellerProfileRoute
-    }
     '/reseller/profile/customize': {
       id: '/reseller/profile/customize'
       path: '/customize'
@@ -1561,12 +1544,10 @@ const CategoriesRouteWithChildren = CategoriesRoute._addFileChildren(
 
 interface ResellerProfileRouteChildren {
   ResellerProfileCustomizeRoute: typeof ResellerProfileCustomizeRoute
-  ResellerProfileIndexRoute: typeof ResellerProfileIndexRoute
 }
 
 const ResellerProfileRouteChildren: ResellerProfileRouteChildren = {
   ResellerProfileCustomizeRoute: ResellerProfileCustomizeRoute,
-  ResellerProfileIndexRoute: ResellerProfileIndexRoute,
 }
 
 const ResellerProfileRouteWithChildren = ResellerProfileRoute._addFileChildren(
