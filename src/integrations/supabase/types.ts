@@ -1104,13 +1104,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      count_other_active_sessions: { Args: never; Returns: number }
       is_admin: { Args: { user_id: string }; Returns: boolean }
       is_sla_user: { Args: { user_id: string }; Returns: boolean }
       is_staff: { Args: { user_id: string }; Returns: boolean }
-      revoke_oldest_sessions: {
-        Args: { _keep?: number; _user_id: string }
-        Returns: number
-      }
     }
     Enums: {
       [_ in never]: never
