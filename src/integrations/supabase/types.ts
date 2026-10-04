@@ -1106,8 +1106,39 @@ export type Database = {
     Functions: {
       count_other_active_sessions: { Args: never; Returns: number }
       is_admin: { Args: { user_id: string }; Returns: boolean }
+      is_owner: { Args: { _user_id: string }; Returns: boolean }
       is_sla_user: { Args: { user_id: string }; Returns: boolean }
       is_staff: { Args: { user_id: string }; Returns: boolean }
+      list_admin_login_history: {
+        Args: { _limit?: number }
+        Returns: {
+          action: string
+          created_at: string
+          email: string
+          id: string
+          ip: string
+          role: string
+          user_id: string
+        }[]
+      }
+      list_admin_sessions: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          ip: string
+          is_current: boolean
+          last_active_at: string
+          role: string
+          session_id: string
+          user_agent: string
+          user_id: string
+        }[]
+      }
+      revoke_admin_session: {
+        Args: { _session_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
