@@ -394,6 +394,22 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       if (authData.user) {
         currentUserRef.current = authData.user.id;
         const profileSuccess = await fetchAdminProfile(authData.user.id, authData.user.email || normalizedEmail);
+        if (profileSuccess) {
+          // Enforce max 2 simultaneous sessions for Owner accounts:
+          // signing in on a new device signs out the oldest ones.
+          try {
+            const { data: roleRow } = await supabase
+              .from('users')
+              .select('role')
+              .eq('id', authData.user.id)
+              .maybeSingle();
+            if (roleRow?.role === 'owner') {
+              await supabase.rpc('revoke_oldest_sessions', { _user_id: authData.user.id, _keep: 2 });
+            }
+          } catch (e) {
+            console.warn("[ADMIN_AUTH] Session limit enforcement failed:", e);
+          }
+        }
         if (!profileSuccess) {
           if (isOwnerAccount) {
             const ownerSession: AdminSession = {
