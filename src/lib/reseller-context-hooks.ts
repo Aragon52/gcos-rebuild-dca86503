@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import { type Product } from "./types";
+import { isNewResellerPromotionRuleActive } from "./vip-utils";
 
 export type StoreTheme = "minimal" | "bold" | "elegant" | "vibrant";
 
@@ -14,6 +15,7 @@ export interface ResellerProfile {
   shopName: string;
   shopLogo: string;
   shopHeroBanner: string;
+  shopDescription?: string;
   shopSlug?: string;
   storeTheme: StoreTheme;
   level: string;
@@ -41,23 +43,12 @@ export interface ResellerProfile {
   memberOfAdminId?: string;
 }
 
-export type ResellerLoginFailureReason =
-  | "invalid-credentials"
-  | "email-unconfirmed"
-  | "no-reseller-profile"
-  | "unknown";
-
-export interface ResellerLoginResult {
-  success: boolean;
-  reason?: ResellerLoginFailureReason;
-  message?: string;
-}
-
 export interface ResellerContextType {
   reseller: ResellerProfile | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<ResellerLoginResult>;
+  login: (email: string, password: string) => Promise<boolean>;
   register: (data: { firstName: string; lastName: string; emailOrPhone: string; password: string; shopName?: string; referralCode?: string; isPhone?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: (referralCode?: string) => Promise<{ error?: string }>;
   logout: () => void;
   updateProfile: (updates: Partial<ResellerProfile>) => void;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
@@ -94,8 +85,14 @@ export const VIP_LEVELS: LevelRequirement[] = [
   { level: "VIP-5", profitMargin: 0.40, productLimit: 150, depositRequirement: 100000 },
 ];
 
-export function getLevelByDeposit(netDeposit: number, currentLevelLabel: string = "VIP-0"): LevelRequirement {
-  const currentLevelNum = Number(currentLevelLabel.replace("VIP-", "")) || 0;
+export function getLevelByDeposit(
+  netDeposit: number, 
+  currentLevelLabel: string = "VIP-0",
+  registrationDate?: string | Date | null
+): LevelRequirement {
+  const cleanLevelStr = currentLevelLabel.replace(/[^0-9]/g, "");
+  const currentLevelNum = cleanLevelStr ? parseInt(cleanLevelStr, 10) : 0;
+  const isNew = isNewResellerPromotionRuleActive(registrationDate);
   
   let metLevelIndex = 0;
   for (let i = VIP_LEVELS.length - 1; i >= 0; i--) {
@@ -105,8 +102,14 @@ export function getLevelByDeposit(netDeposit: number, currentLevelLabel: string 
     }
   }
   
-  const newLevelIndex = Math.max(currentLevelNum, metLevelIndex);
-  return VIP_LEVELS[newLevelIndex];
+  // Only sanitize for NEWLY registered resellers on or after the effective date.
+  // Existing resellers who were registered before the cutoff and set as VIP-1 keep their level intact.
+  const sanitizedLevelNum = (isNew && currentLevelNum === 1 && netDeposit < 1000) 
+    ? 0 
+    : currentLevelNum;
+  
+  const newLevelIndex = Math.max(sanitizedLevelNum, metLevelIndex);
+  return VIP_LEVELS[newLevelIndex] || VIP_LEVELS[0];
 }
 
 export const ResellerContext = createContext<ResellerContextType | undefined>(undefined);

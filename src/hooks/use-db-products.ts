@@ -91,6 +91,8 @@ export function useReviewMutations() {
   return { addReview };
 }
 
+let memoryProductCache: Product[] = [];
+
 export function useDbProducts() {
   return useQuery({
     queryKey: ["db-products"],
@@ -112,13 +114,39 @@ export function useDbProducts() {
           all.push(...data);
           if (data.length < CHUNK) break;
         }
-        return all.map(item => dbProductToLegacy(item as never));
+        const mapped = all.map(item => dbProductToLegacy(item as never));
+        if (mapped.length > 0) {
+          memoryProductCache = mapped;
+          try {
+            localStorage.setItem("cached_db_products", JSON.stringify(mapped));
+          } catch (e) {
+            // ignore localStorage quota limit
+          }
+        }
+        return mapped;
       } catch (error) {
-        console.error("Error fetching products from Supabase:", error);
+        console.warn("[USE_DB_PRODUCTS] Product fetch network notice, checking cache fallback:", error);
+        if (memoryProductCache.length > 0) {
+          return memoryProductCache;
+        }
+        try {
+          const stored = localStorage.getItem("cached_db_products");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              memoryProductCache = parsed;
+              return parsed;
+            }
+          }
+        } catch (e) {
+          // ignore parsing error
+        }
         return [];
       }
     },
-    staleTime: 5000, 
+    staleTime: 30000,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 }
 

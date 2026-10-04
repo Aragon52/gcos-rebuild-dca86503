@@ -65,19 +65,29 @@ export async function uploadImage(path: string, data: string | File): Promise<st
  * This is useful for storing images directly in Firestore to bypass Storage rules.
  * The image is resized to max 800x800 and compressed to JPEG with 0.6 quality.
  */
-export async function compressImageToBase64(file: File): Promise<string | null> {
+export async function compressImageToBase64(file: File, maxDim = 1000): Promise<string | null> {
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
-      console.error("[IMAGE_COMPRESS] Image processing timed out");
-      resolve(null);
-    }, 15000);
+      console.warn("[IMAGE_COMPRESS] Image processing timed out, using raw reader result");
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string || null);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    }, 8000);
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const result = e.target?.result;
+      const result = e.target?.result as string;
       if (!result) {
         clearTimeout(timeout);
         resolve(null);
+        return;
+      }
+
+      // If already small SVG or GIF or under 300KB, return as-is
+      if (file.type === "image/svg+xml" || file.type === "image/gif" || file.size < 300 * 1024) {
+        clearTimeout(timeout);
+        resolve(result);
         return;
       }
 
@@ -86,47 +96,49 @@ export async function compressImageToBase64(file: File): Promise<string | null> 
         clearTimeout(timeout);
         try {
           const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
+          let width = img.naturalWidth || img.width;
+          let height = img.naturalHeight || img.height;
+          const MAX_WIDTH = maxDim;
+          const MAX_HEIGHT = maxDim;
 
           if (width > height) {
             if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
+              height = Math.round((height * MAX_WIDTH) / width);
               width = MAX_WIDTH;
             }
           } else {
             if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
+              width = Math.round((width * MAX_HEIGHT) / height);
               height = MAX_HEIGHT;
             }
           }
 
-          canvas.width = width;
-          canvas.height = height;
+          canvas.width = Math.max(1, width);
+          canvas.height = Math.max(1, height);
           const ctx = canvas.getContext('2d');
           if (!ctx) {
-            resolve(null);
+            resolve(result);
             return;
           }
-          ctx.drawImage(img, 0, 0, width, height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
-          const compressed = canvas.toDataURL('image/jpeg', 0.6);
+          const compressed = canvas.toDataURL('image/jpeg', 0.8);
           resolve(compressed);
         } catch (err) {
-          console.error("[IMAGE_COMPRESS] Error during canvas processing:", err);
-          resolve(null);
+          console.warn("[IMAGE_COMPRESS] Error during canvas processing, fallback to raw base64:", err);
+          resolve(result);
         }
       };
       img.onerror = (err) => {
         clearTimeout(timeout);
-        resolve(null);
+        console.warn("[IMAGE_COMPRESS] Image load error, fallback to raw base64:", err);
+        resolve(result);
       };
-      img.src = result as string;
+      img.src = result;
     };
     reader.onerror = (err) => {
       clearTimeout(timeout);
+      console.error("[IMAGE_COMPRESS] FileReader error:", err);
       resolve(null);
     };
     reader.readAsDataURL(file);
