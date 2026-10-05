@@ -151,7 +151,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
           try {
             const { data: updatedOrders } = await supabase
               .from('orders')
-              .select('profit,profits,status')
+              .select('profit,profits,status,total_amount,total_cost')
               .eq('reseller_id', uid);
 
             if (updatedOrders && mounted) {
@@ -166,6 +166,8 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
                   ...prev,
                   totalOrders: updatedOrders.length,
                   totalEarnings: Number(bestTotal.toFixed(2)),
+                  pendingBalance: Number(sumByStatus(updatedOrders, ['ongoing', 'shipped', 'in_progress']).toFixed(2)),
+                  unpickedBalance: Number(sumByStatus(updatedOrders, ['pending', 'processing']).toFixed(2)),
                 };
               });
             }
@@ -226,8 +228,8 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
                 starRating: shopData.star_rating as number || 2.0,
                 creditScore: shopData.credit_score as number || 100,
                 isSuspended: shopData.is_suspended as boolean || false,
-                level: shopData.level as string || prev.level || "VIP-0",
-                productLimit: shopData.product_limit as number || 20,
+                level: normalizeLevel(shopData.level ?? prev.level),
+                productLimit: Number(shopData.product_limit) || getLevelByDeposit(0, normalizeLevel(shopData.level ?? prev.level)).productLimit,
               };
             });
           }
@@ -476,10 +478,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         // Auto-heal dirty database entries ONLY for NEWLY registered resellers (registered on/after effective date)
         // Existing resellers registered before the cutoff date keep their existing VIP 1 level intact
         const isNewReseller = isNewResellerPromotionRuleActive(registrationDate);
-        if (isNewReseller && netDeposits < 1000 && ((profileData.level === 'VIP 1' || profileData.level === 'VIP-1' || profileData.level === '1') || (currentShopData?.level === 'VIP 1' || currentShopData?.level === 'VIP-1' || currentShopData?.level === '1'))) {
-          supabase.from('reseller_profiles').update({ level: 'VIP-0', product_limit: 20 }).eq('id', userId).then(() => {}, () => {});
-          supabase.from('retail_shops').update({ level: 'VIP-0', product_limit: 20 }).eq('id', userId).then(() => {}, () => {});
-        }
+        void isNewReseller;
 
         // Product selection
         const selectionData = selectionRes.data;
