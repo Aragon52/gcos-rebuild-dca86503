@@ -80,10 +80,12 @@ If your DNS is managed outside Netlify, add these records:
 
 | Type | Name | Value | TTL |
 |---|---|---|---|
-| A | `@` (apex) | Netlify apex IP from your site dashboard | Auto |
+| A | `@` (apex) | `75.2.60.5` (Netlify load balancer) | Auto |
 | CNAME | `www` | your-netlify-site.netlify.app | Auto |
 | CNAME | `reseller` | your-netlify-site.netlify.app | Auto |
 | CNAME | `admin` | your-netlify-site.netlify.app | Auto |
+
+If DNS is on Cloudflare, every one of these records must be **DNS only** (grey cloud). If it is proxied (orange cloud), Cloudflare answers visitors with its own bot challenge and Netlify can't issue or renew SSL for that hostname.
 
 If you use Netlify DNS, Netlify creates the records automatically when you add the aliases.
 
@@ -91,13 +93,11 @@ If you use Netlify DNS, Netlify creates the records automatically when you add t
 
 ## 5. Redirect / rewrite rule (Netlify)
 
-The single function produced by the Nitro `netlify` preset handles routing. The wildcard rewrite is already checked in at `public/_redirects` and is copied to `dist/_redirects` during the build:
+No catch-all rewrite is needed. The Nitro `netlify` preset generates the `server` function with `path: "/*"` and `preferStatic: true`, so Netlify serves files from `dist/` first and sends every other request (on every domain alias) to the SSR app.
 
-```
-/*    /.netlify/functions-internal/server   200
-```
+Do **not** add `/* /.netlify/functions-internal/server 200` to `public/_redirects`. `.netlify/functions-internal` is a build folder, not a URL. That rewrite is applied before the function and makes every page return Netlify's "Page not found".
 
-Do not replace it with a static `index.html` fallback; that would bypass server-side routing and API handlers.
+Also make sure **Site configuration → Build & deploy → Functions directory** is empty or `netlify/functions`. `netlify.toml` pins it to `netlify/functions`.
 
 ---
 
@@ -129,8 +129,10 @@ Path-based access still works on the main domain (`globalcart-onlineshop.com/adm
 ## Troubleshooting
 
 - **Portal loads the wrong layout** — check that the domain aliases are on the same Netlify site and that HTTPS is enabled for each alias.
-- **404s on admin/reseller paths** — make sure the `/* → /.netlify/functions-internal/server` redirect is active.
-- **Build fails** — confirm Node 22 is selected and `NITRO_PRESET=netlify` is set.
+- **Every page shows Netlify's "Page not found"** — remove any `/* /.netlify/functions-internal/server 200` rule from `public/_redirects`; the server function already handles `/*`.
+- **A domain shows a Cloudflare "Just a moment..." page or a 403** — that hostname is proxied through Cloudflare. In Cloudflare DNS, set the `@`, `www`, `admin` and `reseller` records to **DNS only** (grey cloud) so traffic goes straight to Netlify.
+- **Pushes build fine but the live site doesn't change** — production deploys are locked. In Netlify, open **Deploys** and choose **Unlock to start auto publishing**, or publish the deploy you want.
+- **Build fails** — confirm Node 22 is selected. The `netlify` preset is pinned in `vite.config.ts`.
 - **Supabase auth errors** — double-check `VITE_SUPABASE_PUBLISHABLE_KEY` matches the anon key exactly.
 
 ---
