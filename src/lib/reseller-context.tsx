@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDbProducts } from "@/hooks/use-db-products";
 import type { Product } from "@/lib/types";
-import { ResellerContext, type ResellerProfile, type StoreTheme, getLevelByDeposit } from "@/lib/reseller-context-hooks";
+import { ResellerContext, type ResellerProfile, type StoreTheme, getLevelByDeposit, normalizeLevel } from "@/lib/reseller-context-hooks";
+
+/** Sums order amounts whose status is in the given list. */
+function sumByStatus(rows: ReadonlyArray<{ status?: string | null; total_amount?: number | null; total_cost?: number | null }>, statuses: string[]): number {
+  return rows
+    .filter((r) => statuses.includes(String(r.status || '').toLowerCase()))
+    .reduce((sum, r) => sum + Number(r.total_amount ?? r.total_cost ?? 0), 0);
+}
 import { isNewResellerPromotionRuleActive } from "./vip-utils";
 import { supabase } from "./supabase";
 import { useFcmToken } from "@/hooks/use-fcm-token";
@@ -132,6 +139,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
                 shopHeroBanner: custom.shopHeroBanner || profileData.shop_hero_banner || '',
                 storeTheme: (custom.storeTheme as StoreTheme) || profileData.store_theme || 'minimal',
                 verified: profileData.verified || false,
+                level: profileData.level ? normalizeLevel(profileData.level) : prev.level,
                 balance: Number(profileData.balance || 0),
                 pendingBalance: Number(profileData.pending_balance || 0),
                 unpickedBalance: Number(profileData.unpicked_balance || 0),
@@ -151,7 +159,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
           try {
             const { data: updatedOrders } = await supabase
               .from('orders')
-              .select('profit,profits,status')
+              .select('profit,profits,status,total_amount,total_cost')
               .eq('reseller_id', uid);
 
             if (updatedOrders && mounted) {
@@ -166,6 +174,8 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
                   ...prev,
                   totalOrders: updatedOrders.length,
                   totalEarnings: Number(bestTotal.toFixed(2)),
+                  pendingBalance: Number(sumByStatus(updatedOrders, ['ongoing', 'shipped', 'in_progress']).toFixed(2)),
+                  unpickedBalance: Number(sumByStatus(updatedOrders, ['pending', 'processing']).toFixed(2)),
                 };
               });
             }
@@ -226,8 +236,8 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
                 starRating: shopData.star_rating as number || 2.0,
                 creditScore: shopData.credit_score as number || 100,
                 isSuspended: shopData.is_suspended as boolean || false,
-                level: shopData.level as string || prev.level || "VIP-0",
-                productLimit: shopData.product_limit as number || 20,
+                level: normalizeLevel(shopData.level ?? prev.level),
+                productLimit: Number(shopData.product_limit) || getLevelByDeposit(0, normalizeLevel(shopData.level ?? prev.level)).productLimit,
               };
             });
           }
@@ -470,16 +480,13 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         const totalWithdrawals = Number(profileData.total_withdrawals || 0);
         const netDeposits = totalDeposits - totalWithdrawals;
         const registrationDate = profileData.registration_date || profileData.created_at || userData.created_at || (currentShopData as any)?.created_at;
-        const currentLevelLabel = (currentShopData?.level as string) || (profileData?.level as string) || "VIP-0";
+        const currentLevelLabel = normalizeLevel((currentShopData?.level as string) || (profileData?.level as string));
         const levelInfo = getLevelByDeposit(netDeposits, currentLevelLabel, registrationDate);
 
         // Auto-heal dirty database entries ONLY for NEWLY registered resellers (registered on/after effective date)
         // Existing resellers registered before the cutoff date keep their existing VIP 1 level intact
         const isNewReseller = isNewResellerPromotionRuleActive(registrationDate);
-        if (isNewReseller && netDeposits < 1000 && ((profileData.level === 'VIP 1' || profileData.level === 'VIP-1' || profileData.level === '1') || (currentShopData?.level === 'VIP 1' || currentShopData?.level === 'VIP-1' || currentShopData?.level === '1'))) {
-          supabase.from('reseller_profiles').update({ level: 'VIP-0', product_limit: 20 }).eq('id', userId).then(() => {}, () => {});
-          supabase.from('retail_shops').update({ level: 'VIP-0', product_limit: 20 }).eq('id', userId).then(() => {}, () => {});
-        }
+        void isNewReseller;
 
         // Product selection
         const selectionData = selectionRes.data;
