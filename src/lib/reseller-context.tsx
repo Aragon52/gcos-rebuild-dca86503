@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDbProducts } from "@/hooks/use-db-products";
 import type { Product } from "@/lib/types";
-import { ResellerContext, type ResellerProfile, type StoreTheme, getLevelByDeposit } from "@/lib/reseller-context-hooks";
+import { ResellerContext, type ResellerProfile, type StoreTheme, getLevelByDeposit, normalizeLevel } from "@/lib/reseller-context-hooks";
+
+/** Sums order amounts whose status is in the given list. */
+function sumByStatus(rows: ReadonlyArray<{ status?: string | null; total_amount?: number | null; total_cost?: number | null }>, statuses: string[]): number {
+  return rows
+    .filter((r) => statuses.includes(String(r.status || '').toLowerCase()))
+    .reduce((sum, r) => sum + Number(r.total_amount ?? r.total_cost ?? 0), 0);
+}
 import { isNewResellerPromotionRuleActive } from "./vip-utils";
 import { supabase } from "./supabase";
 import { useFcmToken } from "@/hooks/use-fcm-token";
@@ -132,6 +139,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
                 shopHeroBanner: custom.shopHeroBanner || profileData.shop_hero_banner || '',
                 storeTheme: (custom.storeTheme as StoreTheme) || profileData.store_theme || 'minimal',
                 verified: profileData.verified || false,
+                level: profileData.level ? normalizeLevel(profileData.level) : prev.level,
                 balance: Number(profileData.balance || 0),
                 pendingBalance: Number(profileData.pending_balance || 0),
                 unpickedBalance: Number(profileData.unpicked_balance || 0),
@@ -472,7 +480,7 @@ export function ResellerProvider({ children }: { children: React.ReactNode }) {
         const totalWithdrawals = Number(profileData.total_withdrawals || 0);
         const netDeposits = totalDeposits - totalWithdrawals;
         const registrationDate = profileData.registration_date || profileData.created_at || userData.created_at || (currentShopData as any)?.created_at;
-        const currentLevelLabel = (currentShopData?.level as string) || (profileData?.level as string) || "VIP-0";
+        const currentLevelLabel = normalizeLevel((currentShopData?.level as string) || (profileData?.level as string));
         const levelInfo = getLevelByDeposit(netDeposits, currentLevelLabel, registrationDate);
 
         // Auto-heal dirty database entries ONLY for NEWLY registered resellers (registered on/after effective date)
